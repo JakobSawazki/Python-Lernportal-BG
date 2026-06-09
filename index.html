@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="PythonWerkstatt: Grundlagen der Programmierung verständlich lernen, direkt üben und Fortschritt sammeln.">
+  <meta name="theme-color" content="#173f35">
+  <title>PythonWerkstatt · Berufliches Gymnasium</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2218%22 fill=%22%23173f35%22/><text x=%2250%22 y=%2264%22 font-size=%2254%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22Arial%22>Py</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Zum Inhalt springen</a>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#home" data-route="home" aria-label="PythonWerkstatt Startseite">
+        <span class="brand-mark">Py</span>
+        <span>
+          <strong>PythonWerkstatt</strong>
+          <small>Berufliches Gymnasium</small>
+        </span>
+      </a>
+
+      <nav class="main-nav" aria-label="Hauptnavigation">
+        <button class="nav-item is-active" type="button" data-route="home">
+          <i data-lucide="house"></i>
+          <span>Übersicht</span>
+        </button>
+        <button class="nav-item" type="button" data-route="path">
+          <i data-lucide="route"></i>
+          <span>Lernpfad</span>
+        </button>
+        <button class="nav-item" type="button" data-route="practice">
+          <i data-lucide="code-2"></i>
+          <span>Üben</span>
+        </button>
+        <button class="nav-item" type="button" data-route="achievements">
+          <i data-lucide="trophy"></i>
+          <span>Erfolge</span>
+        </button>
+        <button class="nav-item" type="button" data-route="reference">
+          <i data-lucide="book-open-text"></i>
+          <span>Nachschlagen</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+
+      <section class="profile-summary" aria-label="Dein Lernstand">
+        <div class="profile-row">
+          <span class="avatar" id="sidebarAvatar">G</span>
+          <div>
+            <strong id="sidebarName">Gast</strong>
+            <small id="sidebarLevel">Level 1 · Starter</small>
+          </div>
+          <button class="icon-button" id="editProfileButton" type="button" title="Profil bearbeiten" aria-label="Profil bearbeiten">
+            <i data-lucide="pencil"></i>
+          </button>
+        </div>
+        <div class="xp-track" aria-label="Fortschritt bis zum nächsten Level">
+          <span id="sidebarXpBar"></span>
+        </div>
+        <small id="sidebarXpText">0 / 100 XP</small>
+      </section>
+    </aside>
+
+    <div class="page-column">
+      <header class="topbar">
+        <button class="icon-button mobile-menu-button" id="mobileMenuButton" type="button" title="Navigation öffnen" aria-label="Navigation öffnen">
+          <i data-lucide="menu"></i>
+        </button>
+        <div>
+          <p class="eyebrow" id="viewEyebrow">Deine Lernzentrale</p>
+          <h1 id="viewTitle">Übersicht</h1>
+        </div>
+        <div class="topbar-actions">
+          <div class="runtime-chip" id="runtimeChip" title="Python läuft vollständig lokal in deinem Browser">
+            <span class="status-dot"></span>
+            <span id="runtimeText">Python wird vorbereitet</span>
+          </div>
+          <div class="points-chip" title="Deine Erfahrungspunkte">
+            <i data-lucide="sparkles"></i>
+            <strong id="topXp">0 XP</strong>
+          </div>
+        </div>
+      </header>
+
+      <main id="mainContent" tabindex="-1"></main>
+    </div>
+  </div>
+
+  <div class="mobile-backdrop" id="mobileBackdrop"></div>
+
+  <dialog class="profile-dialog" id="profileDialog">
+    <form method="dialog" id="profileForm">
+      <div class="dialog-heading">
+        <span class="dialog-icon"><i data-lucide="user-round"></i></span>
+        <div>
+          <p class="eyebrow">Nur auf diesem Gerät</p>
+          <h2>Dein Lernprofil</h2>
+        </div>
+      </div>
+      <p>Wähle einen Vornamen oder ein Kürzel. Dein Fortschritt bleibt ausschließlich in diesem Browser gespeichert.</p>
+      <label for="profileName">Name oder Kürzel</label>
+      <input id="profileName" name="profileName" maxlength="18" autocomplete="off" placeholder="z. B. Mia oder MIA">
+      <div class="dialog-actions">
+        <button class="button button-secondary" value="cancel" type="button" id="profileCancelButton">Abbrechen</button>
+        <button class="button button-primary" value="save" type="submit">
+          <i data-lucide="check"></i>
+          Speichern
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="https://unpkg.com/lucide@1.16.0/dist/umd/lucide.js"></script>
+  <script src="content.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,891 @@
+(() => {
+  "use strict";
+
+  const content = window.PYLAB_CONTENT;
+  const storageKey = "pythonwerkstatt-bg-v1";
+  const main = document.querySelector("#mainContent");
+  const sidebar = document.querySelector("#sidebar");
+  const backdrop = document.querySelector("#mobileBackdrop");
+  const profileDialog = document.querySelector("#profileDialog");
+  const profileForm = document.querySelector("#profileForm");
+  const profileName = document.querySelector("#profileName");
+  const runtimeChip = document.querySelector("#runtimeChip");
+  const runtimeText = document.querySelector("#runtimeText");
+
+  const defaultState = {
+    name: "",
+    xp: 0,
+    completedLessons: [],
+    completedExercises: [],
+    drafts: {},
+    activityDates: [],
+    lastLessonId: "sequenz"
+  };
+
+  const levels = [
+    { min: 0, title: "Starter" },
+    { min: 100, title: "Code-Entdecker" },
+    { min: 250, title: "Pfadfinder" },
+    { min: 450, title: "Problemlöser" },
+    { min: 700, title: "Python-Profi" },
+    { min: 1000, title: "Werkstattmeister" }
+  ];
+
+  let state = loadState();
+  let exerciseFilter = "all";
+  let worker = null;
+  let workerReady = null;
+  let pendingRuns = new Map();
+  let requestCounter = 0;
+
+  function loadState() {
+    try {
+      const stored = JSON.parse(localStorage.getItem(storageKey));
+      return {
+        ...defaultState,
+        ...stored,
+        completedLessons: Array.isArray(stored?.completedLessons) ? stored.completedLessons : [],
+        completedExercises: Array.isArray(stored?.completedExercises) ? stored.completedExercises : [],
+        drafts: stored?.drafts && typeof stored.drafts === "object" ? stored.drafts : {},
+        activityDates: Array.isArray(stored?.activityDates) ? stored.activityDates : []
+      };
+    } catch {
+      return { ...defaultState };
+    }
+  }
+
+  function saveState() {
+    localStorage.setItem(storageKey, JSON.stringify(state));
+    updateChrome();
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function inlineCode(value) {
+    return escapeHtml(value).replace(/`([^`]+)`/g, "<code>$1</code>");
+  }
+
+  function difficultyLabel(value) {
+    return { easy: "Grundlage", medium: "Vertiefung", plus: "Plus" }[value] || value;
+  }
+
+  function lessonById(id) {
+    return content.lessons.find((lesson) => lesson.id === id);
+  }
+
+  function exerciseById(id) {
+    return content.exercises.find((exercise) => exercise.id === id);
+  }
+
+  function moduleById(id) {
+    return content.modules.find((module) => module.id === id);
+  }
+
+  function currentLevel() {
+    let index = 0;
+    levels.forEach((level, levelIndex) => {
+      if (state.xp >= level.min) {
+        index = levelIndex;
+      }
+    });
+    const current = levels[index];
+    const next = levels[index + 1];
+    return {
+      number: index + 1,
+      title: current.title,
+      currentMin: current.min,
+      nextMin: next?.min ?? current.min,
+      progress: next ? ((state.xp - current.min) / (next.min - current.min)) * 100 : 100
+    };
+  }
+
+  function progressPercent(done, total) {
+    return total ? Math.round((done / total) * 100) : 0;
+  }
+
+  function todayKey(date = new Date()) {
+    return [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, "0"),
+      String(date.getDate()).padStart(2, "0")
+    ].join("-");
+  }
+
+  function markActivity() {
+    const today = todayKey();
+    if (!state.activityDates.includes(today)) {
+      state.activityDates.push(today);
+      state.activityDates = state.activityDates.slice(-90);
+    }
+  }
+
+  function streak() {
+    const dates = new Set(state.activityDates);
+    let count = 0;
+    const cursor = new Date();
+    while (dates.has(todayKey(cursor))) {
+      count += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return count;
+  }
+
+  function award(kind, id, xp) {
+    const key = kind === "lesson" ? "completedLessons" : "completedExercises";
+    if (state[key].includes(id)) {
+      return false;
+    }
+    state[key].push(id);
+    state.xp += xp;
+    markActivity();
+    saveState();
+    toast(`+${xp} XP gesammelt`, "xp");
+    return true;
+  }
+
+  function moduleProgress(module) {
+    const done = module.lessonIds.filter((id) => state.completedLessons.includes(id)).length;
+    return { done, total: module.lessonIds.length, percent: progressPercent(done, module.lessonIds.length) };
+  }
+
+  function nextLesson() {
+    const incomplete = content.lessons.find((lesson) => !state.completedLessons.includes(lesson.id));
+    return incomplete || content.lessons.at(-1);
+  }
+
+  function achievementUnlocked(achievement) {
+    const condition = achievement.condition;
+    if (condition.type === "lessons") {
+      return state.completedLessons.length >= condition.value;
+    }
+    if (condition.type === "exercises") {
+      return state.completedExercises.length >= condition.value;
+    }
+    if (condition.type === "module") {
+      return moduleProgress(moduleById(condition.value)).percent === 100;
+    }
+    if (condition.type === "exerciseSet") {
+      return condition.value.every((id) => state.completedExercises.includes(id));
+    }
+    if (condition.type === "lessonExercise") {
+      const lesson = lessonById(condition.value);
+      return state.completedLessons.includes(lesson.id) && state.completedExercises.includes(lesson.practiceId);
+    }
+    if (condition.type === "xp") {
+      return state.xp >= condition.value;
+    }
+    if (condition.type === "all") {
+      return state.completedLessons.length === content.lessons.length &&
+        state.completedExercises.length === content.exercises.length;
+    }
+    return false;
+  }
+
+  function updateChrome() {
+    const level = currentLevel();
+    const displayName = state.name || "Gast";
+    document.querySelector("#sidebarName").textContent = displayName;
+    document.querySelector("#sidebarAvatar").textContent = displayName.slice(0, 1).toUpperCase();
+    document.querySelector("#sidebarLevel").textContent = `Level ${level.number} · ${level.title}`;
+    document.querySelector("#sidebarXpBar").style.width = `${Math.max(0, Math.min(100, level.progress))}%`;
+    document.querySelector("#sidebarXpText").textContent = level.number === levels.length
+      ? `${state.xp} XP · Höchstes Level`
+      : `${state.xp} / ${level.nextMin} XP`;
+    document.querySelector("#topXp").textContent = `${state.xp} XP`;
+  }
+
+  function setHeading(eyebrow, title) {
+    document.querySelector("#viewEyebrow").textContent = eyebrow;
+    document.querySelector("#viewTitle").textContent = title;
+    document.title = `${title} · PythonWerkstatt`;
+  }
+
+  function closeMobileNav() {
+    sidebar.classList.remove("is-open");
+    backdrop.classList.remove("is-visible");
+  }
+
+  function activateNav(route) {
+    document.querySelectorAll(".nav-item").forEach((item) => {
+      item.classList.toggle("is-active", item.dataset.route === route);
+    });
+  }
+
+  function go(route) {
+    window.location.hash = route;
+    closeMobileNav();
+  }
+
+  function renderIcons() {
+    window.lucide?.createIcons();
+  }
+
+  function lessonCard(lesson) {
+    const completed = state.completedLessons.includes(lesson.id);
+    return `
+      <article class="lesson-card" tabindex="0" role="button" data-lesson="${lesson.id}" aria-label="${escapeHtml(lesson.title)} öffnen">
+        <span class="lesson-state ${completed ? "is-done" : ""}">
+          <i data-lucide="${completed ? "check" : "book-open"}"></i>
+        </span>
+        <span class="lesson-index">${lesson.index}</span>
+        <h3>${escapeHtml(lesson.title)}</h3>
+        <p>${escapeHtml(lesson.subtitle)}</p>
+        <div class="lesson-meta">
+          <span class="meta-pill"><i data-lucide="clock-3"></i>${lesson.duration} Min.</span>
+          <span class="meta-pill difficulty-${lesson.difficulty}">${difficultyLabel(lesson.difficulty)}</span>
+          <span class="meta-pill"><i data-lucide="sparkles"></i>${lesson.xp} XP</span>
+        </div>
+      </article>`;
+  }
+
+  function exerciseCard(exercise) {
+    const completed = state.completedExercises.includes(exercise.id);
+    return `
+      <article class="exercise-card" tabindex="0" role="button" data-exercise="${exercise.id}" aria-label="${escapeHtml(exercise.title)} öffnen">
+        <span class="lesson-state ${completed ? "is-done" : ""}">
+          <i data-lucide="${completed ? "check" : "terminal"}"></i>
+        </span>
+        <span class="lesson-index">${lessonById(exercise.lessonId).index}</span>
+        <h3>${escapeHtml(exercise.title)}</h3>
+        <p>${escapeHtml(exercise.description)}</p>
+        <div class="exercise-meta">
+          <span class="meta-pill difficulty-${exercise.difficulty}">${difficultyLabel(exercise.difficulty)}</span>
+          <span class="meta-pill"><i data-lucide="sparkles"></i>${exercise.xp} XP</span>
+        </div>
+      </article>`;
+  }
+
+  function renderHome() {
+    setHeading("Deine Lernzentrale", "Übersicht");
+    activateNav("home");
+    const lesson = nextLesson();
+    const lessonProgress = progressPercent(state.completedLessons.length, content.lessons.length);
+    const unlocked = content.achievements.filter(achievementUnlocked).length;
+    main.innerHTML = `
+      <section class="hero-band">
+        <div class="hero-content">
+          <p class="eyebrow">Python in deinem Tempo</p>
+          <h2>${state.name ? `Weiter geht's, ${escapeHtml(state.name)}.` : "Verstehen. Ausprobieren. Dranbleiben."}</h2>
+          <p>Arbeite dich in kleinen Schritten von den ersten Ausgaben bis zu eigenen Funktionen vor. Jede Lektion führt direkt zu einer Aufgabe, die du im Browser ausprobieren kannst.</p>
+          <div class="hero-actions">
+            <button class="button button-primary" type="button" data-lesson="${lesson.id}">
+              <i data-lucide="play"></i>
+              ${state.completedLessons.length ? "Weiterlernen" : "Lernpfad starten"}
+            </button>
+            <button class="button button-secondary" type="button" data-route="practice">
+              <i data-lucide="code-2"></i>
+              Aufgaben öffnen
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="stats-grid" aria-label="Lernstatistik">
+        <div class="stat-item">
+          <span class="stat-icon"><i data-lucide="book-check"></i></span>
+          <div><strong>${state.completedLessons.length} / ${content.lessons.length}</strong><small>Lektionen</small></div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-icon is-blue"><i data-lucide="square-terminal"></i></span>
+          <div><strong>${state.completedExercises.length} / ${content.exercises.length}</strong><small>Aufgaben gelöst</small></div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-icon is-yellow"><i data-lucide="trophy"></i></span>
+          <div><strong>${unlocked} / ${content.achievements.length}</strong><small>Erfolge</small></div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-icon is-coral"><i data-lucide="flame"></i></span>
+          <div><strong>${streak()} ${streak() === 1 ? "Tag" : "Tage"}</strong><small>Aktuelle Serie</small></div>
+        </div>
+      </section>
+
+      <section class="content-section">
+        <div class="section-heading">
+          <div><h2>Dein nächster Schritt</h2><p>Die Lektionen bauen aufeinander auf, bleiben aber frei wählbar.</p></div>
+        </div>
+        <div class="continue-band">
+          <div class="continue-main">
+            <div class="lesson-meta">
+              <span class="meta-pill">Lektion ${lesson.index}</span>
+              <span class="meta-pill"><i data-lucide="clock-3"></i>${lesson.duration} Min.</span>
+            </div>
+            <h3>${escapeHtml(lesson.title)}</h3>
+            <p>${escapeHtml(lesson.subtitle)}</p>
+            <button class="button button-primary" type="button" data-lesson="${lesson.id}">
+              <i data-lucide="arrow-right"></i>
+              Lektion öffnen
+            </button>
+          </div>
+          <div class="continue-progress">
+            <small>Gesamtfortschritt</small>
+            <strong>${lessonProgress} %</strong>
+            <div class="progress-track"><span style="width:${lessonProgress}%"></span></div>
+            <small>${state.completedLessons.length} von ${content.lessons.length} Lektionen abgeschlossen</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-section">
+        <div class="section-heading">
+          <div><h2>Die fünf Etappen</h2><p>Vom sicheren Fundament bis zum kleinen Python-Projekt.</p></div>
+          <button class="text-button" type="button" data-route="path">Gesamten Lernpfad <i data-lucide="arrow-right"></i></button>
+        </div>
+        <div class="module-grid">
+          ${content.modules.map((module) => {
+            const progress = moduleProgress(module);
+            return `
+              <article class="module-card">
+                <span class="module-number">${module.number}</span>
+                <h3>${escapeHtml(module.title)}</h3>
+                <p>${escapeHtml(module.description)}</p>
+                <div class="progress-track"><span style="width:${progress.percent}%"></span></div>
+                <div class="module-footer"><span>${progress.done}/${progress.total} Lektionen</span><strong>${progress.percent} %</strong></div>
+              </article>`;
+          }).join("")}
+        </div>
+      </section>`;
+  }
+
+  function renderPath() {
+    setHeading("BPE 5 · Grundlagen der Programmierung", "Lernpfad");
+    activateNav("path");
+    main.innerHTML = `
+      <p class="view-intro">Beginne mit den Grundlagen und arbeite dich Schritt für Schritt vor. Bereits bekannte Themen kannst du direkt öffnen.</p>
+      ${content.modules.map((module) => {
+        const lessons = module.lessonIds.map(lessonById);
+        const progress = moduleProgress(module);
+        return `
+          <section class="content-section">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Etappe ${module.number}</p>
+                <h2>${escapeHtml(module.title)}</h2>
+                <p>${escapeHtml(module.description)}</p>
+              </div>
+              <strong>${progress.percent} %</strong>
+            </div>
+            <div class="lesson-grid">${lessons.map(lessonCard).join("")}</div>
+          </section>`;
+      }).join("")}`;
+  }
+
+  function renderPractice() {
+    setHeading("Selbst programmieren", "Üben");
+    activateNav("practice");
+    const filtered = exerciseFilter === "all"
+      ? content.exercises
+      : content.exercises.filter((exercise) => exercise.difficulty === exerciseFilter);
+    main.innerHTML = `
+      <p class="view-intro">Wähle eine Aufgabe, schreibe den Code selbst und lass deine Lösung automatisch prüfen. Fehler gehören dazu: Lies die Meldung, ändere eine Sache und probiere erneut.</p>
+      <div class="filters" aria-label="Aufgaben filtern">
+        ${[
+          ["all", "Alle Aufgaben"],
+          ["easy", "Grundlagen"],
+          ["medium", "Vertiefung"],
+          ["plus", "Python Plus"]
+        ].map(([value, label]) => `
+          <button class="filter-button ${exerciseFilter === value ? "is-active" : ""}" type="button" data-filter="${value}">${label}</button>
+        `).join("")}
+      </div>
+      <div class="exercise-grid">${filtered.map(exerciseCard).join("")}</div>`;
+  }
+
+  function renderAchievements() {
+    setHeading("Deine Meilensteine", "Erfolge");
+    activateNav("achievements");
+    const unlocked = content.achievements.filter(achievementUnlocked).length;
+    main.innerHTML = `
+      <p class="view-intro">${unlocked} von ${content.achievements.length} Erfolgen sind freigeschaltet. Sie entstehen automatisch durch abgeschlossene Lektionen, gelöste Aufgaben und gesammelte XP.</p>
+      <div class="achievement-grid">
+        ${content.achievements.map((achievement) => {
+          const isUnlocked = achievementUnlocked(achievement);
+          return `
+            <article class="achievement-card ${isUnlocked ? "" : "is-locked"}">
+              <span class="achievement-icon"><i data-lucide="${isUnlocked ? achievement.icon : "lock-keyhole"}"></i></span>
+              <h3>${escapeHtml(achievement.title)}</h3>
+              <p>${escapeHtml(achievement.description)}</p>
+              <span class="achievement-status">${isUnlocked ? "Freigeschaltet" : "Noch gesperrt"}</span>
+            </article>`;
+        }).join("")}
+      </div>`;
+  }
+
+  function renderReference() {
+    setHeading("Python kompakt", "Nachschlagen");
+    activateNav("reference");
+    main.innerHTML = `
+      <p class="view-intro">Kurze Muster für die wichtigsten Sprachelemente. Nutze sie als Erinnerung und passe Variablennamen und Werte an deine Aufgabe an.</p>
+      <div class="reference-grid">
+        ${content.reference.map((item) => `
+          <article class="reference-card">
+            <h3>${escapeHtml(item.title)}</h3>
+            <p>${escapeHtml(item.description)}</p>
+            <pre>${escapeHtml(item.code)}</pre>
+          </article>`).join("")}
+      </div>`;
+  }
+
+  function renderLesson(id) {
+    const lesson = lessonById(id);
+    if (!lesson) {
+      go("path");
+      return;
+    }
+    state.lastLessonId = lesson.id;
+    saveState();
+    setHeading(`Lektion ${lesson.index}`, lesson.title);
+    activateNav("path");
+    const completed = state.completedLessons.includes(lesson.id);
+    main.innerHTML = `
+      <article class="lesson-detail">
+        <header class="detail-header">
+          <button class="text-button back-button" type="button" data-route="path"><i data-lucide="arrow-left"></i> Zum Lernpfad</button>
+          <div class="lesson-meta">
+            <span class="meta-pill difficulty-${lesson.difficulty}">${difficultyLabel(lesson.difficulty)}</span>
+            <span class="meta-pill"><i data-lucide="clock-3"></i>${lesson.duration} Min.</span>
+            <span class="meta-pill"><i data-lucide="sparkles"></i>${lesson.xp} XP</span>
+          </div>
+          <h2>${escapeHtml(lesson.title)}</h2>
+          <p>${escapeHtml(lesson.subtitle)}</p>
+        </header>
+
+        <section class="objectives-band">
+          <h3>Danach kannst du ...</h3>
+          <ul>${lesson.objectives.map((objective) => `<li>${escapeHtml(objective)}</li>`).join("")}</ul>
+        </section>
+
+        ${lesson.sections.map((section) => `
+          <section class="lesson-section">
+            <h3>${escapeHtml(section.title)}</h3>
+            <div class="lesson-copy">
+              ${section.body.map((paragraph) => `<p>${inlineCode(paragraph)}</p>`).join("")}
+              ${section.code ? `<pre class="code-example"><code>${escapeHtml(section.code)}</code></pre>` : ""}
+              ${section.tip ? `<div class="callout"><i data-lucide="lightbulb"></i><p>${inlineCode(section.tip)}</p></div>` : ""}
+              ${section.warning ? `<div class="callout is-warning"><i data-lucide="triangle-alert"></i><p>${inlineCode(section.warning)}</p></div>` : ""}
+            </div>
+          </section>`).join("")}
+
+        <section class="quick-check">
+          <p class="eyebrow">Kurz prüfen</p>
+          <h3>${escapeHtml(lesson.quiz.question)}</h3>
+          <form id="quizForm" data-lesson-id="${lesson.id}">
+            <div class="answer-options">
+              ${lesson.quiz.options.map((option, index) => `
+                <label class="answer-option">
+                  <input type="radio" name="quizAnswer" value="${index}">
+                  <span>${escapeHtml(option)}</span>
+                </label>`).join("")}
+            </div>
+            <button class="button button-primary" type="submit">
+              <i data-lucide="check"></i>
+              ${completed ? "Antwort prüfen" : "Lektion abschließen"}
+            </button>
+            <div class="feedback" id="quizFeedback"></div>
+          </form>
+        </section>
+
+        <section class="content-section">
+          <div class="section-heading">
+            <div><h2>Jetzt selbst programmieren</h2><p>Wende das Gelernte direkt in einer kleinen Aufgabe an.</p></div>
+          </div>
+          <button class="button button-coral" type="button" data-exercise="${lesson.practiceId}">
+            <i data-lucide="terminal"></i>
+            Aufgabe öffnen
+          </button>
+        </section>
+      </article>`;
+  }
+
+  function renderExercise(id) {
+    const exercise = exerciseById(id);
+    if (!exercise) {
+      go("practice");
+      return;
+    }
+    const lesson = lessonById(exercise.lessonId);
+    const savedDraft = state.drafts[exercise.id];
+    const code = savedDraft ?? exercise.starter;
+    setHeading(`Aufgabe zu Lektion ${lesson.index}`, exercise.title);
+    activateNav("practice");
+    main.innerHTML = `
+      <button class="text-button back-button" type="button" data-route="practice"><i data-lucide="arrow-left"></i> Zu allen Aufgaben</button>
+      <div class="exercise-workspace">
+        <aside class="exercise-brief">
+          <div class="exercise-meta">
+            <span class="meta-pill difficulty-${exercise.difficulty}">${difficultyLabel(exercise.difficulty)}</span>
+            <span class="meta-pill"><i data-lucide="sparkles"></i>${exercise.xp} XP</span>
+          </div>
+          <h2>${escapeHtml(exercise.title)}</h2>
+          <p>${escapeHtml(exercise.description)}</p>
+          <ol>${exercise.instructions.map((instruction) => `<li>${inlineCode(instruction)}</li>`).join("")}</ol>
+          <button class="text-button" type="button" data-lesson="${lesson.id}"><i data-lucide="book-open"></i> Erklärung noch einmal ansehen</button>
+        </aside>
+
+        <section>
+          <div class="editor-shell">
+            <div class="editor-toolbar">
+              <strong>main.py</strong>
+              <button class="icon-button" id="resetCodeButton" type="button" title="Aufgabe zurücksetzen" aria-label="Aufgabe zurücksetzen">
+                <i data-lucide="rotate-ccw"></i>
+              </button>
+            </div>
+            <textarea class="code-editor" id="codeEditor" spellcheck="false" aria-label="Python-Code">${escapeHtml(code)}</textarea>
+            <div class="runner-panel">
+              <div class="runner-tabs">
+                <button class="runner-tab is-active" type="button" data-runner-tab="output">Ausgabe</button>
+                <button class="runner-tab" type="button" data-runner-tab="input">Eingabe</button>
+              </div>
+              <div class="runner-content is-active" data-runner-panel="output">
+                <pre class="console-output" id="consoleOutput">Bereit. Starte deinen Code oder prüfe die Lösung.</pre>
+              </div>
+              <div class="runner-content" data-runner-panel="input">
+                <textarea class="input-area" id="inputArea" spellcheck="false" aria-label="Eingaben für input">${escapeHtml(exercise.input || "")}</textarea>
+              </div>
+            </div>
+            <div class="editor-actions">
+              <button class="button button-secondary" type="button" id="runCodeButton">
+                <i data-lucide="play"></i>
+                Code starten
+              </button>
+              <button class="button button-primary" type="button" id="checkCodeButton">
+                <i data-lucide="badge-check"></i>
+                Lösung prüfen
+              </button>
+            </div>
+          </div>
+          <div class="result-banner" id="resultBanner"></div>
+        </section>
+      </div>`;
+
+    const editor = document.querySelector("#codeEditor");
+    editor.addEventListener("input", () => {
+      state.drafts[exercise.id] = editor.value;
+      saveState();
+    });
+  }
+
+  function showQuizFeedback(success, message) {
+    const feedback = document.querySelector("#quizFeedback");
+    feedback.className = `feedback is-visible ${success ? "is-success" : "is-error"}`;
+    feedback.textContent = message;
+  }
+
+  function showResult(success, title, detail) {
+    const banner = document.querySelector("#resultBanner");
+    banner.className = `result-banner is-visible ${success ? "is-success" : "is-error"}`;
+    banner.innerHTML = `
+      <i data-lucide="${success ? "circle-check" : "circle-alert"}"></i>
+      <div><strong>${escapeHtml(title)}</strong><p>${escapeHtml(detail)}</p></div>`;
+    renderIcons();
+  }
+
+  function setConsole(value, error = false) {
+    const output = document.querySelector("#consoleOutput");
+    if (!output) {
+      return;
+    }
+    output.textContent = value || "(keine Ausgabe)";
+    output.classList.toggle("is-error", error);
+    document.querySelectorAll("[data-runner-tab]").forEach((tab) => {
+      tab.classList.toggle("is-active", tab.dataset.runnerTab === "output");
+    });
+    document.querySelectorAll("[data-runner-panel]").forEach((panel) => {
+      panel.classList.toggle("is-active", panel.dataset.runnerPanel === "output");
+    });
+  }
+
+  function setRuntime(status, text) {
+    runtimeChip.classList.toggle("is-ready", status === "ready");
+    runtimeChip.classList.toggle("is-error", status === "error");
+    runtimeText.textContent = text;
+  }
+
+  function createWorker() {
+    if (worker) {
+      worker.terminate();
+    }
+    pendingRuns.forEach(({ reject }) => reject(new Error("Python wurde neu gestartet.")));
+    pendingRuns = new Map();
+    setRuntime("loading", "Python wird vorbereitet");
+
+    worker = new Worker("python-worker.js", { type: "module" });
+    workerReady = new Promise((resolve, reject) => {
+      const readyTimeout = window.setTimeout(() => reject(new Error("Python konnte nicht geladen werden.")), 30000);
+      worker.addEventListener("message", function onReady(event) {
+        if (event.data?.type === "ready") {
+          window.clearTimeout(readyTimeout);
+          worker.removeEventListener("message", onReady);
+          setRuntime("ready", "Python ist bereit");
+          resolve();
+        }
+        if (event.data?.type === "init-error") {
+          window.clearTimeout(readyTimeout);
+          worker.removeEventListener("message", onReady);
+          setRuntime("error", "Python nicht verfügbar");
+          reject(new Error(event.data.error));
+        }
+      });
+    });
+
+    worker.addEventListener("message", (event) => {
+      if (event.data?.type !== "result") {
+        return;
+      }
+      const pending = pendingRuns.get(event.data.requestId);
+      if (!pending) {
+        return;
+      }
+      window.clearTimeout(pending.timeout);
+      pendingRuns.delete(event.data.requestId);
+      pending.resolve(event.data);
+    });
+  }
+
+  async function executePython(code, inputs, testCode = "") {
+    await workerReady;
+    const requestId = ++requestCounter;
+    return new Promise((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        pendingRuns.delete(requestId);
+        createWorker();
+        reject(new Error("Das Programm lief zu lange und wurde beendet. Prüfe besonders deine Schleifen."));
+      }, 10000);
+      pendingRuns.set(requestId, { resolve, reject, timeout });
+      worker.postMessage({ type: "run", requestId, code, inputs, testCode });
+    });
+  }
+
+  function normalizeOutput(value) {
+    return String(value).replace(/\r\n/g, "\n").trim();
+  }
+
+  async function runExercise(checkSolution) {
+    const route = parseRoute();
+    const exercise = exerciseById(route.id);
+    const editor = document.querySelector("#codeEditor");
+    const input = document.querySelector("#inputArea");
+    const runButton = document.querySelector("#runCodeButton");
+    const checkButton = document.querySelector("#checkCodeButton");
+    if (!exercise || !editor || !input) {
+      return;
+    }
+
+    runButton.disabled = true;
+    checkButton.disabled = true;
+    setConsole("Python arbeitet ...");
+    try {
+      const check = exercise.check;
+      const testCode = checkSolution && check.type === "tests" ? check.code : "";
+      const inputs = checkSolution ? (exercise.checkInput ?? exercise.input ?? "") : input.value;
+      const result = await executePython(editor.value, inputs, testCode);
+      const combinedError = [result.stderr, result.error].filter(Boolean).join("\n");
+      if (combinedError) {
+        setConsole(combinedError, true);
+        if (checkSolution) {
+          showResult(false, "Noch nicht ganz", "Lies die letzte Zeile der Fehlermeldung und prüfe die genannte Codezeile.");
+        }
+        return;
+      }
+
+      setConsole(result.stdout);
+      if (!checkSolution) {
+        return;
+      }
+
+      let passed = false;
+      if (check.type === "tests") {
+        passed = result.testsPassed;
+      } else if (check.type === "output") {
+        passed = normalizeOutput(result.stdout) === normalizeOutput(check.expected);
+      } else if (check.type === "outputNumber") {
+        const lastLine = normalizeOutput(result.stdout).split("\n").at(-1)?.replace(",", ".");
+        passed = Math.abs(Number(lastLine) - check.expected) < 0.001;
+      }
+
+      if (passed) {
+        const firstCompletion = award("exercise", exercise.id, exercise.xp);
+        showResult(true, "Aufgabe gelöst", firstCompletion
+          ? `Starke Arbeit. ${exercise.xp} XP wurden gutgeschrieben.`
+          : "Deine Lösung besteht die Prüfung weiterhin.");
+      } else {
+        showResult(false, "Noch nicht ganz", "Vergleiche Aufgabe und Ausgabe genau. Prüfe auch Reihenfolge, Schreibweise und Grenzwerte.");
+      }
+    } catch (error) {
+      setConsole(error.message, true);
+      if (checkSolution) {
+        showResult(false, "Python ist gerade nicht bereit", "Prüfe die Internetverbindung und versuche es erneut.");
+      }
+    } finally {
+      runButton.disabled = false;
+      checkButton.disabled = false;
+    }
+  }
+
+  function toast(message, type = "success") {
+    const region = document.querySelector("#toastRegion");
+    const element = document.createElement("div");
+    element.className = `toast ${type === "xp" ? "is-xp" : ""}`;
+    element.innerHTML = `<i data-lucide="${type === "xp" ? "sparkles" : "circle-check"}"></i><strong>${escapeHtml(message)}</strong>`;
+    region.append(element);
+    renderIcons();
+    window.setTimeout(() => element.remove(), 3200);
+  }
+
+  function parseRoute() {
+    const hash = window.location.hash.replace(/^#\/?/, "") || "home";
+    const [name, id] = hash.split("/");
+    return { name, id };
+  }
+
+  function renderRoute() {
+    const route = parseRoute();
+    if (route.name === "home") {
+      renderHome();
+    } else if (route.name === "path") {
+      renderPath();
+    } else if (route.name === "practice") {
+      renderPractice();
+    } else if (route.name === "achievements") {
+      renderAchievements();
+    } else if (route.name === "reference") {
+      renderReference();
+    } else if (route.name === "lesson") {
+      renderLesson(route.id);
+    } else if (route.name === "exercise") {
+      renderExercise(route.id);
+    } else {
+      go("home");
+      return;
+    }
+    updateChrome();
+    renderIcons();
+    main.focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
+
+  document.addEventListener("click", (event) => {
+    const routeButton = event.target.closest("[data-route]");
+    const lessonButton = event.target.closest("[data-lesson]");
+    const exerciseButton = event.target.closest("[data-exercise]");
+    const filterButton = event.target.closest("[data-filter]");
+    const runnerTab = event.target.closest("[data-runner-tab]");
+
+    if (routeButton) {
+      event.preventDefault();
+      go(routeButton.dataset.route);
+    }
+    if (lessonButton) {
+      go(`lesson/${lessonButton.dataset.lesson}`);
+    }
+    if (exerciseButton) {
+      go(`exercise/${exerciseButton.dataset.exercise}`);
+    }
+    if (filterButton) {
+      exerciseFilter = filterButton.dataset.filter;
+      renderPractice();
+      renderIcons();
+    }
+    if (runnerTab) {
+      document.querySelectorAll("[data-runner-tab]").forEach((tab) => {
+        tab.classList.toggle("is-active", tab === runnerTab);
+      });
+      document.querySelectorAll("[data-runner-panel]").forEach((panel) => {
+        panel.classList.toggle("is-active", panel.dataset.runnerPanel === runnerTab.dataset.runnerTab);
+      });
+    }
+
+    if (event.target.closest("#runCodeButton")) {
+      runExercise(false);
+    }
+    if (event.target.closest("#checkCodeButton")) {
+      runExercise(true);
+    }
+    if (event.target.closest("#resetCodeButton")) {
+      const exercise = exerciseById(parseRoute().id);
+      const editor = document.querySelector("#codeEditor");
+      if (exercise && editor && window.confirm("Deinen Code auf den Startzustand zurücksetzen?")) {
+        editor.value = exercise.starter;
+        delete state.drafts[exercise.id];
+        saveState();
+        setConsole("Die Aufgabe wurde zurückgesetzt.");
+        document.querySelector("#resultBanner").className = "result-banner";
+      }
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    const card = event.target.closest("[data-lesson], [data-exercise]");
+    if (card && (event.key === "Enter" || event.key === " ")) {
+      event.preventDefault();
+      if (card.dataset.lesson) {
+        go(`lesson/${card.dataset.lesson}`);
+      } else {
+        go(`exercise/${card.dataset.exercise}`);
+      }
+    }
+
+    if (event.target.id === "codeEditor" && event.key === "Tab") {
+      event.preventDefault();
+      const editor = event.target;
+      const start = editor.selectionStart;
+      editor.setRangeText("    ", start, editor.selectionEnd, "end");
+      editor.dispatchEvent(new Event("input"));
+    }
+  });
+
+  document.addEventListener("submit", (event) => {
+    if (event.target.id === "quizForm") {
+      event.preventDefault();
+      const form = event.target;
+      const lesson = lessonById(form.dataset.lessonId);
+      const selected = form.querySelector('input[name="quizAnswer"]:checked');
+      if (!selected) {
+        showQuizFeedback(false, "Wähle zuerst eine Antwort aus.");
+        return;
+      }
+      if (Number(selected.value) === lesson.quiz.correct) {
+        award("lesson", lesson.id, lesson.xp);
+        showQuizFeedback(true, `Richtig. ${lesson.quiz.explanation}`);
+      } else {
+        showQuizFeedback(false, `Noch nicht. ${lesson.quiz.explanation}`);
+      }
+    }
+  });
+
+  document.querySelector("#mobileMenuButton").addEventListener("click", () => {
+    sidebar.classList.toggle("is-open");
+    backdrop.classList.toggle("is-visible");
+  });
+  backdrop.addEventListener("click", closeMobileNav);
+
+  document.querySelector("#editProfileButton").addEventListener("click", () => {
+    profileName.value = state.name;
+    profileDialog.showModal();
+    profileName.focus();
+  });
+  document.querySelector("#profileCancelButton").addEventListener("click", () => profileDialog.close());
+  profileForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    state.name = profileName.value.trim().slice(0, 18);
+    saveState();
+    profileDialog.close();
+    renderRoute();
+    toast("Lernprofil gespeichert");
+  });
+
+  window.addEventListener("hashchange", renderRoute);
+
+  createWorker();
+  renderRoute();
+  if (!state.name && !sessionStorage.getItem("pythonwerkstatt-profile-seen")) {
+    sessionStorage.setItem("pythonwerkstatt-profile-seen", "1");
+    window.setTimeout(() => profileDialog.showModal(), 350);
+  }
+})();
