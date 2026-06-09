@@ -39,3 +39,14 @@ Der Lernstand wird ausschließlich im `localStorage` des verwendeten Browsers ge
 
 - [Übergabe für die Weiterarbeit](UEBERGABE_Codex.md)
 - [Didaktik, Datenschutz und Quellen](docs/TECHNIK_UND_DIDAKTIK.md)
+- [Abgleich mit BPE 5, Materialstand 31.07.2025](docs/BPE5_ABGLEICH_2025.md)
+
+## Fachliche Grundlage
+
+Maßgeblich sind die Materialien des Landesbildungsservers Baden-Württemberg für
+die nichtgewerblichen beruflichen Gymnasien, Jahrgangsstufe 1:
+[Grundlagen der Programmierung – Version mit Python, Stand 31.07.2025](https://www.schule-bw.de/resolveuid/4bf04e3081af47f9aa0a7455778f3cbe).
+
+Die vollständige Materialsammlung einschließlich Musterlösungen bleibt in der
+privaten Unterrichtsablage und ist nicht Bestandteil dieses öffentlichen
+Repositories.

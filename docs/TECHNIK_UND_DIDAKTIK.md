@@ -43,15 +43,23 @@ Die Aufgabenprüfung verwendet je nach Lernziel:
 ## Quellen
 
 - Ministerium für Kultus, Jugend und Sport Baden-Württemberg: [Bildungsplan Informatik, nichtgewerbliche Berufliche Gymnasien](https://www.bildungsplaene-bw.de/In_OS_nichtTG)
-- Landesbildungsserver Baden-Württemberg: [Materialien zum Bildungsplan Informatik](https://www.schule-bw.de/faecher-und-schularten/mathematisch-naturwissenschaftliche-faecher/informatik/material/materialien-zum-neuen-bildungsplan-informatik-an-den-nichtgewerblichen-beruflichen-gymnasien)
+- Landesbildungsserver Baden-Württemberg: [Materialien zum Bildungsplan Informatik an den nichtgewerblichen Beruflichen Gymnasien](https://www.schule-bw.de/faecher-und-schularten/mathematisch-naturwissenschaftliche-faecher/informatik/material/materialien-zum-neuen-bildungsplan-informatik-an-den-nichtgewerblichen-beruflichen-gymnasien)
+- Landesbildungsserver Baden-Württemberg: [Grundlagen der Programmierung – Version mit Python, Stand 31.07.2025](https://www.schule-bw.de/resolveuid/4bf04e3081af47f9aa0a7455778f3cbe)
 - Pyodide: [Using Pyodide in a web worker](https://pyodide.org/en/stable/usage/webworker.html)
 - Lucide: [Lucide Icons](https://lucide.dev/)
 
-Zusätzlich wurden die von der Lehrkraft lokal bereitgestellten Kompetenzraster, Ich-kann-Listen und Unterrichtsmaterialien zu den Lernfortschritten 1 bis 3 inhaltlich gesichtet. Es wurden keine Musterlösungen und keine privaten Originaldateien in das öffentliche Projekt übernommen.
+Die lokale Referenzdatei liegt unter
+`D:\Google Drive\Lehramt\Lernfelder\BPE5\bpe-5-grundlagen-der-programmierung-version-mit-python.zip`.
+Das Archiv enthält das Kompetenzraster sowie die Ich-kann-Listen zu den
+Lernfortschritten 1 bis 3. Diese Dokumente wurden inhaltlich gesichtet.
+Es wurden keine Musterlösungen und keine privaten Originaldateien in das
+öffentliche Projekt übernommen.
+
+Der detaillierte Soll-Ist-Abgleich ist in
+[`BPE5_ABGLEICH_2025.md`](BPE5_ABGLEICH_2025.md) dokumentiert.
 
 ## Bildnachweis
 
 `assets/python-lernraum.png` wurde am 9. Juni 2026 mit dem integrierten OpenAI-Bildgenerator eigens für dieses Projekt erzeugt.
 
 Verwendete Bildidee: heller schulischer Arbeitsplatz mit Laptop, Python-Code, Karten für Sequenz, Entscheidung und Schleife sowie ruhiger grüner Freifläche für den Seitentitel; ohne Personen und ohne Markenlogos.
-

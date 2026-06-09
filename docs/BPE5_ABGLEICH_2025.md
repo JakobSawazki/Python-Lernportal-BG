@@ -1,0 +1,108 @@
+# Abgleich mit BPE 5: Grundlagen der Programmierung
+
+Stand des Abgleichs: 9. Juni 2026  
+Referenzmaterial: Version mit Python, Stand 31. Juli 2025
+
+## Verbindliche Referenz
+
+Das Portal orientiert sich an den Materialien des Landesbildungsservers
+Baden-Württemberg für die nichtgewerblichen beruflichen Gymnasien,
+Jahrgangsstufe 1:
+
+- [Übersichtsseite der Materialien](https://www.schule-bw.de/faecher-und-schularten/mathematisch-naturwissenschaftliche-faecher/informatik/material/materialien-zum-neuen-bildungsplan-informatik-an-den-nichtgewerblichen-beruflichen-gymnasien)
+- [Direkter Download der Python-Version](https://www.schule-bw.de/resolveuid/4bf04e3081af47f9aa0a7455778f3cbe)
+
+Private lokale Referenz:
+
+`D:\Google Drive\Lehramt\Lernfelder\BPE5\bpe-5-grundlagen-der-programmierung-version-mit-python.zip`
+
+Das Archiv enthält 3.668 Einträge, darunter das Kompetenzraster, drei
+Ich-kann-Listen, Unterrichtsmaterialien, Aufgaben und Musterlösungen. Diese
+Originaldateien werden nicht in das öffentliche GitHub-Repository übernommen.
+
+## Kompetenzbereiche
+
+Das offizielle Kompetenzraster gliedert die Einheit in drei Bereiche:
+
+1. Programmieren mit einer ikonischen Entwicklungsumgebung
+2. Benutzereingaben, Ausgaben, Berechnungen und Funktionen mit Python
+3. Alternativen und Wiederholungen mit Python
+
+## Soll-Ist-Abgleich
+
+### Lernfortschritt 1: Ikonischer Einstieg und Struktogramme
+
+| Offizieller Inhalt | Stand im Portal |
+| --- | --- |
+| Sequentielle Abläufe | Inhaltlich durch Lektion 01 abgedeckt |
+| Projekte in einer ikonischen Umgebung | Noch nicht umgesetzt |
+| `for`-Schleifen ikonisch entwickeln | Später unmittelbar in Python umgesetzt |
+| `while`-Schleifen ikonisch entwickeln | Später unmittelbar in Python umgesetzt |
+| Alternativen ikonisch entwickeln | Später unmittelbar in Python umgesetzt |
+| Abläufe als Struktogramm darstellen | Noch nicht umgesetzt |
+
+**Bewertung:** Die algorithmischen Grundideen sind vorhanden. Der visuelle
+Einstieg über MyKara beziehungsweise Greenfoot und die Übersetzung zwischen
+Struktogramm und Programmcode fehlen noch.
+
+### Lernfortschritt 2: Python-Grundlagen
+
+| Offizieller Inhalt | Portal-Lektion | Abdeckung |
+| --- | --- | --- |
+| Python-Programme anlegen und verwalten | gesamte Browserumgebung | teilweise, da Thonny nicht erklärt wird |
+| Textausgaben mit `print()` | 01 Sequenz und Ausgabe | vollständig |
+| Variablen, Datentypen und kombinierte Ausgaben | 02 Variablen und Datentypen | vollständig |
+| Rechenoperatoren | 03 Rechnen mit Python | vollständig |
+| Benutzereingaben und Typumwandlung | 04 Eingaben und Umwandlung | vollständig |
+| Funktionen, Parameter und Rückgabewerte | 10 Funktionen | vollständig |
+| Programme als Struktogramm dokumentieren | mehrere Teilziele | noch nicht umgesetzt |
+| Grafische Benutzeroberflächen | Zusatzinhalt | noch nicht umgesetzt |
+
+**Bewertung:** Der verpflichtende Python-Kern ist sehr gut abgedeckt. Thonny
+ist für das browserbasierte Portal technisch nicht erforderlich. Die
+GUI-Einheit ist im Kompetenzmaterial als Zusatzbereich gekennzeichnet und kann
+später als Python-Plus-Modul ergänzt werden.
+
+### Lernfortschritt 3: Kontrollstrukturen
+
+| Offizieller Inhalt | Portal-Lektion | Abdeckung |
+| --- | --- | --- |
+| Einseitige Verzweigung | 05 Vergleiche und `if` | vollständig |
+| Zweiseitige Verzweigung | 06 `if`, `elif` und `else` | vollständig |
+| Geschachtelte Verzweigung | 06 und 07 | bisher nur indirekt |
+| `and`, `or` und `not` | 07 Logische Operatoren | vollständig |
+| Zählerschleife `for` | 08 `for`-Schleifen | vollständig |
+| Kopfgesteuerte Schleife `while` | 09 `while`-Schleifen | vollständig |
+| Kontrollstrukturen als Struktogramm | mehrere Teilziele | noch nicht umgesetzt |
+
+**Bewertung:** Die Python-Kontrollstrukturen sind vorhanden. Eine eigene
+Erklärung und Aufgabe zur geschachtelten Verzweigung sollte ergänzt werden.
+Struktogramme sind der größte noch offene bildungsplanbezogene Baustein.
+
+## Bewusste Erweiterungen
+
+Die Lektionen zu Listen und systematischer Fehlersuche gehen über den engsten
+Kern des Kompetenzrasters hinaus. Sie bleiben bewusst im Portal, weil sie
+einen zugänglichen Übergang zu weiterführenden Python-Inhalten schaffen und
+die Selbstständigkeit beim Üben stärken.
+
+## Priorisierte Weiterentwicklung
+
+1. Ein Lernbereich „Vom Problem zum Struktogramm“ mit Sequenz, Alternative und
+   Wiederholung.
+2. Struktogramm-Aufgaben mit einer browsergeeigneten Darstellung oder einer
+   sicheren Anbindung des hus-Struktogrammers.
+3. Eine ausdrückliche Lektion beziehungsweise Übung zu geschachtelten
+   Verzweigungen.
+4. Ein optionales GUI-Kapitel, sofern es im konkreten Unterricht eingesetzt
+   wird.
+5. Eine Kompetenzansicht, die den Lernenden die offiziellen Ich-kann-Ziele in
+   verständlicher Sprache zeigt.
+
+## Urheberrechtliche Grenze
+
+Das Portal übernimmt die fachliche Struktur und formuliert Erklärungen und
+Aufgaben eigenständig. Originalarbeitsblätter, Bilder, Musterlösungen und
+weitere Dateien aus dem Archiv bleiben in der privaten Unterrichtsablage.
+Vor einer späteren Übernahme einzelner Materialien müssen die jeweils
+angegebenen Lizenzbedingungen separat geprüft werden.

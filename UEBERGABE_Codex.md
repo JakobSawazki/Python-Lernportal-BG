@@ -15,6 +15,15 @@ Stand: 9. Juni 2026
 
 Die private Materialsammlung liegt getrennt unter `...\Lernfelder\BPE5`. Sie enthält unter anderem Musterlösungen und wird absichtlich nicht in dieses öffentliche Repository kopiert.
 
+Verbindliche fachliche Referenz:
+
+- Datei: `bpe-5-grundlagen-der-programmierung-version-mit-python.zip`
+- Materialstand: 31. Juli 2025
+- Größe: 23.496.218 Byte
+- SHA-256: `E1747DB487817A46AAD11B1A6A6CD7E71AEF5F49414BFDCEE8CFC940DA8CF460`
+- Offizieller Download: `https://www.schule-bw.de/resolveuid/4bf04e3081af47f9aa0a7455778f3cbe`
+- Soll-Ist-Abgleich: `docs/BPE5_ABGLEICH_2025.md`
+
 ## Aktueller Funktionsumfang
 
 - Übersicht mit persönlichem nächsten Schritt und Lernstatistik
@@ -38,6 +47,7 @@ Die private Materialsammlung liegt getrennt unter `...\Lernfelder\BPE5`. Sie ent
 | `python-worker.js` | Laden und Ausführen von Pyodide |
 | `assets/python-lernraum.png` | Titelbild der Übersicht |
 | `docs/TECHNIK_UND_DIDAKTIK.md` | Quellen, Datenschutz und didaktische Entscheidungen |
+| `docs/BPE5_ABGLEICH_2025.md` | Abdeckung des offiziellen Kompetenzrasters und offene Ausbauschritte |
 
 ## Zustandsmodell
 
@@ -67,11 +77,13 @@ XP werden pro Lektion und Aufgabe nur einmal vergeben.
 
 ## Sinnvolle nächste Schritte
 
-1. Fachliche Durchsicht aller Formulierungen durch die Lehrkraft.
-2. Weitere Aufgabenvarianten und kleine Transferaufgaben ergänzen.
-3. Optional Struktogramm-Aufgaben als eigener Bereich entwickeln.
-4. Optional Export/Import des lokalen Lernstands als JSON ergänzen.
-5. Vor einem Einsatz als Leistungsnachweis ein separates Prüfungsprojekt mit Authentifizierung und serverseitiger Speicherung planen.
+1. Struktogramme als durchgängige Darstellungsform ergänzen.
+2. Den ikonischen Einstieg aus Lernfortschritt 1 didaktisch übertragen.
+3. Geschachtelte Verzweigungen ausdrücklich behandeln und üben.
+4. Die GUI-Inhalte aus Lernfortschritt 2 als optionales Zusatzmodul prüfen.
+5. Weitere Aufgabenvarianten und kleine Transferaufgaben ergänzen.
+6. Optional Export/Import des lokalen Lernstands als JSON ergänzen.
+7. Vor einem Einsatz als Leistungsnachweis ein separates Prüfungsprojekt mit Authentifizierung und serverseitiger Speicherung planen.
 
 ## Grenzen
 
@@ -85,4 +97,3 @@ XP werden pro Lektion und Aufgabe nur einmal vergeben.
 Empfohlener Startauftrag:
 
 > Öffne `UEBERGABE_Codex.md` und prüfe anschließend `git status`, `README.md`, `content.js` und `app.js`. Das Projekt ist das öffentliche Python-Lernportal für BPE 5. Arbeite mit dem vorhandenen Stil weiter und veröffentliche Änderungen nach Prüfung wieder über GitHub Pages.
-
