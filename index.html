@@ -79,6 +79,10 @@
           <h1 id="viewTitle">Übersicht</h1>
         </div>
         <div class="topbar-actions">
+          <button class="icon-button backup-button" id="backupButton" type="button"
+            title="Lernstand sichern oder laden" aria-label="Lernstand sichern oder laden">
+            <i data-lucide="save"></i>
+          </button>
           <div class="runtime-chip" id="runtimeChip" title="Python läuft vollständig lokal in deinem Browser">
             <span class="status-dot"></span>
             <span id="runtimeText">Python wird vorbereitet</span>
@@ -105,7 +109,7 @@
           <h2>Dein Lernprofil</h2>
         </div>
       </div>
-      <p>Wähle einen Vornamen oder ein Kürzel. Dein Fortschritt bleibt ausschließlich in diesem Browser gespeichert.</p>
+      <p>Wähle einen Vornamen oder ein Kürzel. Dein Fortschritt bleibt in diesem Browserprofil gespeichert. Auf Schul-PCs können Profildaten beim Abmelden zurückgesetzt werden.</p>
       <label for="profileName">Name oder Kürzel</label>
       <input id="profileName" name="profileName" maxlength="18" autocomplete="off" placeholder="z. B. Mia oder MIA">
       <div class="dialog-actions">
@@ -114,6 +118,38 @@
           <i data-lucide="check"></i>
           Speichern
         </button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="profile-dialog backup-dialog" id="backupDialog">
+    <form method="dialog" id="backupForm">
+      <div class="dialog-heading">
+        <span class="dialog-icon"><i data-lucide="hard-drive-download"></i></span>
+        <div>
+          <p class="eyebrow">Geräteunabhängig weiterlernen</p>
+          <h2>Lernstand sichern</h2>
+        </div>
+      </div>
+      <p>Speichere deinen vollständigen Fortschritt als JSON-Datei und lade ihn beim nächsten Unterricht wieder.</p>
+      <div class="backup-summary" id="backupSummary"></div>
+      <div class="backup-actions">
+        <button class="backup-action" id="exportProgressButton" type="button">
+          <span class="backup-action-icon"><i data-lucide="download"></i></span>
+          <span><strong>Datei speichern</strong><small>Desktop oder Informatik-Stick auswählen</small></span>
+        </button>
+        <button class="backup-action" id="importProgressButton" type="button">
+          <span class="backup-action-icon"><i data-lucide="upload"></i></span>
+          <span><strong>Datei laden</strong><small>Gesicherten Lernstand wiederherstellen</small></span>
+        </button>
+        <input class="sr-only" id="progressFileInput" type="file" accept=".json,application/json">
+      </div>
+      <div class="callout is-warning backup-note">
+        <i data-lucide="info"></i>
+        <p>Der Browser darf den Desktop nicht automatisch wählen. Nutze im Speicherdialog „Desktop“ oder deinen Informatik-Stick. Bei automatischen Downloads liegt die Datei meist im Ordner „Downloads“.</p>
+      </div>
+      <div class="dialog-actions">
+        <button class="button button-secondary" value="cancel" type="button" id="backupCloseButton">Schließen</button>
       </div>
     </form>
   </dialog>

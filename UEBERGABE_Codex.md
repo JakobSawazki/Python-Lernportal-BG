@@ -34,6 +34,7 @@ Verbindliche fachliche Referenz:
 - Pyodide 0.29.4 in einem Web Worker
 - Abbruch sehr langer Programme nach zehn Sekunden
 - lokaler Name beziehungsweise Kürzel, XP, Level, Erfolge und Entwürfe
+- versionierter JSON-Export und -Import des vollständigen Lernstands
 - Nachschlagebereich mit kompakten Syntaxmustern
 - responsive Navigation und Tastaturbedienung
 
@@ -64,7 +65,12 @@ Der Schlüssel im Browser lautet `pythonwerkstatt-bg-v1`. Gespeichert werden:
 - `activityDates`
 - `lastLessonId`
 
-Es gibt kein Backend und keine Synchronisation zwischen Geräten. Das ist für die erste datenschutzarme Version beabsichtigt.
+Es gibt kein Backend und keine automatische Synchronisation zwischen Geräten.
+Das ist für die datenschutzarme Version beabsichtigt. Über das
+Disketten-Symbol in der Kopfzeile lässt sich der vollständige Zustand in einer
+JSON-Datei sichern und auf einem anderen Gerät wieder laden. Die Datei trägt
+das Formatkennzeichen `formatVersion: 1`; unbekannte IDs und unplausible Werte
+werden beim Import verworfen beziehungsweise neu berechnet.
 
 ## Inhalte bearbeiten
 
@@ -85,13 +91,13 @@ XP werden pro Lektion und Aufgabe nur einmal vergeben.
 3. Den ikonischen Einstieg aus Lernfortschritt 1 bei Bedarf didaktisch übertragen.
 4. Die GUI-Inhalte aus Lernfortschritt 2 als optionales Zusatzmodul prüfen.
 5. Weitere Python-Aufgabenvarianten ergänzen.
-6. Optional Export/Import des lokalen Lernstands als JSON ergänzen.
-7. Vor einem Einsatz als Leistungsnachweis ein separates Prüfungsprojekt mit Authentifizierung und serverseitiger Speicherung planen.
+6. Vor einem Einsatz als Leistungsnachweis ein separates Prüfungsprojekt mit Authentifizierung und serverseitiger Speicherung planen.
 
 ## Grenzen
 
 - Die Plattform ist derzeit ein Übungsportal, kein manipulationssicheres Prüfungssystem.
-- Lernstände bleiben auf einem Browserprofil und lassen sich lokal verändern.
+- Lernstände bleiben lokal und lassen sich über Browserwerkzeuge oder die
+  JSON-Datei verändern.
 - Für Pyodide und Lucide ist beim ersten Laden eine Internetverbindung erforderlich.
 - `input()` verwendet im Aufgabenbereich vorbereitete Eingabezeilen statt modaler Dialoge.
 

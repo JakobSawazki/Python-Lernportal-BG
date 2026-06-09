@@ -28,6 +28,38 @@ Externe technische Ressourcen werden beim Laden direkt vom jeweiligen CDN abgeru
 
 Für einen späteren schulischen Produktivbetrieb kann man diese Dateien selbst hosten, um externe Abrufe vollständig zu vermeiden.
 
+### Verhalten auf Schul-PCs
+
+`localStorage` bleibt normalerweise auch nach dem Schließen des Browsers und
+nach einem Neustart des PCs erhalten. Ein Schüler kann beim nächsten Unterricht
+am bisherigen Stand weiterarbeiten, wenn alle folgenden Bedingungen erfüllt
+sind:
+
+- derselbe Schul-PC oder dasselbe synchronisierte Windows-Benutzerprofil,
+- derselbe Browser,
+- kein privates beziehungsweise InPrivate-Fenster,
+- Browser- und Profildaten werden von der Schulverwaltung nicht automatisch
+  beim Abmelden gelöscht.
+
+Nicht garantiert ist die Speicherung bei wechselnden PCs, Gastkonten,
+zurückgesetzten Benutzerprofilen oder zentraler Browserbereinigung. Die
+PythonWerkstatt behandelt den Browserstand deshalb als bequeme lokale
+Zwischenspeicherung, nicht als dauerhafte Datensicherung.
+
+### Lernstand als Datei
+
+Über das Disketten-Symbol kann der vollständige Lernstand als JSON-Datei
+exportiert werden. Der Inhalt umfasst Profil, Abschlüsse, Aktivitätstage sowie
+Code- und Struktogramm-Entwürfe. Beim Import werden Dateityp, maximale Größe,
+Formatversion und bekannte Inhalts-IDs geprüft. XP werden aus den gültigen
+Abschlüssen neu berechnet.
+
+Webseiten dürfen aus Sicherheitsgründen keinen bestimmten Zielordner wie den
+Desktop ungefragt beschreiben. Unterstützt der Browser die File System Access
+API, kann der Lernende im Speicherdialog Desktop oder Informatik-Stick wählen.
+Sonst wird die Datei als normaler Download gespeichert und kann anschließend
+verschoben werden.
+
 ## Technische Architektur
 
 Die Anwendung ist eine statische Single-Page-Anwendung ohne Framework und Build-System. Hash-Routing hält alle Unterseiten mit GitHub Pages kompatibel.
@@ -75,6 +107,18 @@ Fünf Übungen prüfen Reihenfolge oder ausgewählte Operatoren automatisch. Auf
 kleinen Bildschirmen werden J- und N-Zweig untereinander dargestellt, damit
 auch geschachtelte Strukturen vollständig lesbar bleiben. Für umfangreichere
 freie Zeichnungen verweist das Portal auf den hus Struktogrammer.
+
+## Schulische Hilfsmittel
+
+Die Kaufmännische Schule stellt den Lernenden Thonny und den hus
+Struktogrammer auf den Schul-PCs sowie über den Informatik-Stick bereit. Der
+Stick dient als zentraler Einstieg und enthält die für den Unterricht
+benötigten Programme.
+
+Die Portalformulierung vermeidet eine allgemeine, zeitlich unbegrenzte
+Zulassungsaussage. Sie verweist darauf, dass für konkrete schriftliche und
+mündliche Abiturprüfungen die jeweils aktuellen schulischen
+Prüfungsanweisungen maßgeblich sind.
 
 ## Bildnachweis
 

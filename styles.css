@@ -275,6 +275,12 @@ h4 {
   background: var(--surface-soft);
 }
 
+.backup-button {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--green-700);
+}
+
 .xp-track,
 .progress-track {
   overflow: hidden;
@@ -1318,6 +1324,67 @@ code {
   white-space: pre;
 }
 
+.tools-band {
+  padding: 22px 0 30px;
+  border-bottom: 1px solid var(--line);
+}
+
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.tool-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 270px;
+  padding: 19px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+}
+
+.tool-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 18px;
+  border-radius: 7px;
+  background: var(--green-900);
+  color: #fff;
+}
+
+.tool-icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.tool-item h3 {
+  margin-bottom: 7px;
+}
+
+.tool-item p {
+  color: #405149;
+  font-size: 0.9rem;
+}
+
+.tool-item small {
+  margin-bottom: 15px;
+  color: var(--muted);
+}
+
+.tool-item .text-button {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+.tools-band > .callout {
+  margin-top: 14px;
+}
+
 .empty-state {
   padding: 48px 24px;
   border: 1px dashed #aabbb2;
@@ -1832,6 +1899,94 @@ code {
   margin-top: 22px;
 }
 
+.backup-dialog {
+  width: min(600px, calc(100vw - 28px));
+  max-height: calc(100dvh - 28px);
+  overflow-y: auto;
+}
+
+.backup-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 18px 0;
+}
+
+.backup-summary > div {
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-soft);
+  text-align: center;
+}
+
+.backup-summary strong,
+.backup-summary small {
+  display: block;
+}
+
+.backup-summary strong {
+  color: var(--green-900);
+  font-size: 1.08rem;
+}
+
+.backup-summary small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.backup-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.backup-action {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 11px;
+  align-items: center;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+}
+
+.backup-action:hover {
+  border-color: var(--green-500);
+  background: #f7fbf9;
+}
+
+.backup-action-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--green-900);
+  color: #fff;
+}
+
+.backup-action strong,
+.backup-action small {
+  display: block;
+}
+
+.backup-action small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.backup-note {
+  margin-top: 12px;
+}
+
 .toast-region {
   position: fixed;
   z-index: 100;
@@ -1862,6 +2017,12 @@ code {
   color: #6c4c00;
 }
 
+.toast.is-error {
+  border-color: #e7b4b4;
+  background: #fff0f0;
+  color: #8f3030;
+}
+
 @keyframes toast-in {
   from {
     transform: translateY(10px);
@@ -1878,7 +2039,8 @@ code {
   .lesson-grid,
   .exercise-grid,
   .achievement-grid,
-  .reference-grid {
+  .reference-grid,
+  .tool-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1985,6 +2147,10 @@ code {
     padding-inline: 8px;
   }
 
+  .runtime-chip {
+    display: none;
+  }
+
   .hero-band {
     min-height: 390px;
     align-items: flex-end;
@@ -2002,7 +2168,8 @@ code {
   .exercise-grid,
   .achievement-grid,
   .reference-grid,
-  .operator-grid {
+  .operator-grid,
+  .tool-grid {
     grid-template-columns: 1fr;
   }
 
@@ -2106,6 +2273,25 @@ code {
     min-height: 300px;
     font-size: 0.84rem;
   }
+
+  .backup-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .topbar {
+    gap: 8px;
+  }
+
+  .topbar .eyebrow {
+    display: none;
+  }
+
+  .points-chip svg {
+    display: none;
+  }
+
 }
 
 @media (prefers-reduced-motion: reduce) {

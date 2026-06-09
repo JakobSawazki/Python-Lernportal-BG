@@ -9,8 +9,11 @@
   const profileDialog = document.querySelector("#profileDialog");
   const profileForm = document.querySelector("#profileForm");
   const profileName = document.querySelector("#profileName");
+  const backupDialog = document.querySelector("#backupDialog");
+  const progressFileInput = document.querySelector("#progressFileInput");
   const runtimeChip = document.querySelector("#runtimeChip");
   const runtimeText = document.querySelector("#runtimeText");
+  const backupFormatVersion = 1;
 
   const defaultState = {
     name: "",
@@ -40,21 +43,73 @@
   let pendingRuns = new Map();
   let requestCounter = 0;
 
+  function uniqueAllowedStrings(values, allowedIds) {
+    if (!Array.isArray(values)) {
+      return [];
+    }
+    return [...new Set(values.filter((value) => typeof value === "string" && allowedIds.has(value)))];
+  }
+
+  function normalizeState(candidate = {}) {
+    const lessonIds = new Set(content.lessons.map((lesson) => lesson.id));
+    const exerciseIds = new Set(content.exercises.map((exercise) => exercise.id));
+    const structogramIds = new Set(content.structograms.exercises.map((exercise) => exercise.id));
+    const completedLessons = uniqueAllowedStrings(candidate.completedLessons, lessonIds);
+    const completedExercises = uniqueAllowedStrings(candidate.completedExercises, exerciseIds);
+    const completedStructograms = uniqueAllowedStrings(candidate.completedStructograms, structogramIds);
+    const drafts = {};
+    const structogramDrafts = {};
+
+    Object.entries(candidate.drafts || {}).forEach(([id, value]) => {
+      if (exerciseIds.has(id) && typeof value === "string") {
+        drafts[id] = value.slice(0, 100000);
+      }
+    });
+
+    Object.entries(candidate.structogramDrafts || {}).forEach(([id, value]) => {
+      if (!structogramIds.has(id) || !value || typeof value !== "object") {
+        return;
+      }
+      const cleanDraft = {};
+      if (Array.isArray(value.order)) {
+        cleanDraft.order = value.order.filter((item) => typeof item === "string").slice(0, 30);
+      }
+      if (value.answers && typeof value.answers === "object") {
+        cleanDraft.answers = {};
+        Object.entries(value.answers).forEach(([slot, answer]) => {
+          if (typeof answer === "string") {
+            cleanDraft.answers[slot] = answer.slice(0, 300);
+          }
+        });
+      }
+      structogramDrafts[id] = cleanDraft;
+    });
+
+    const xp =
+      completedLessons.reduce((sum, id) => sum + (lessonById(id)?.xp || 0), 0) +
+      completedExercises.reduce((sum, id) => sum + (exerciseById(id)?.xp || 0), 0) +
+      completedStructograms.reduce((sum, id) => sum + (structogramExerciseById(id)?.xp || 0), 0);
+
+    return {
+      ...defaultState,
+      name: typeof candidate.name === "string" ? candidate.name.trim().slice(0, 18) : "",
+      xp,
+      completedLessons,
+      completedExercises,
+      completedStructograms,
+      drafts,
+      structogramDrafts,
+      activityDates: Array.isArray(candidate.activityDates)
+        ? [...new Set(candidate.activityDates.filter((date) => /^\d{4}-\d{2}-\d{2}$/.test(date)))].slice(-90)
+        : [],
+      lastLessonId: lessonIds.has(candidate.lastLessonId) ? candidate.lastLessonId : "sequenz"
+    };
+  }
+
   function loadState() {
     try {
       const stored = JSON.parse(localStorage.getItem(storageKey));
-      return {
-        ...defaultState,
-        ...stored,
-        completedLessons: Array.isArray(stored?.completedLessons) ? stored.completedLessons : [],
-        completedExercises: Array.isArray(stored?.completedExercises) ? stored.completedExercises : [],
-        completedStructograms: Array.isArray(stored?.completedStructograms) ? stored.completedStructograms : [],
-        drafts: stored?.drafts && typeof stored.drafts === "object" ? stored.drafts : {},
-        structogramDrafts: stored?.structogramDrafts && typeof stored.structogramDrafts === "object"
-          ? stored.structogramDrafts
-          : {},
-        activityDates: Array.isArray(stored?.activityDates) ? stored.activityDates : []
-      };
+      return normalizeState(stored || {});
     } catch {
       return { ...defaultState };
     }
@@ -743,10 +798,40 @@
   }
 
   function renderReference() {
-    setHeading("Python kompakt", "Nachschlagen");
+    setHeading("Werkzeuge und Syntax", "Nachschlagen");
     activateNav("reference");
     main.innerHTML = `
-      <p class="view-intro">Kurze Muster für die wichtigsten Sprachelemente. Nutze sie als Erinnerung und passe Variablennamen und Werte an deine Aufgabe an.</p>
+      <p class="view-intro">Hier findest du die schulisch bereitgestellten Hilfsmittel und kurze Muster für die wichtigsten Python-Sprachelemente.</p>
+      <section class="tools-band">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Am Schul-PC</p>
+            <h2>Erlaubte Hilfsmittel</h2>
+            <p>Thonny und der hus Struktogrammer sind installiert und zusätzlich über den Informatik-Stick verfügbar.</p>
+          </div>
+        </div>
+        <div class="tool-grid">
+          ${content.tools.map((tool) => `
+            <article class="tool-item">
+              <span class="tool-icon"><i data-lucide="${tool.icon}"></i></span>
+              <h3>${escapeHtml(tool.title)}</h3>
+              <p>${escapeHtml(tool.description)}</p>
+              <small>${escapeHtml(tool.note)}</small>
+              ${tool.url ? `
+                <a class="text-button" href="${tool.url}" target="_blank" rel="noreferrer">
+                  Projektseite <i data-lucide="external-link"></i>
+                </a>` : ""}
+            </article>`).join("")}
+        </div>
+        <div class="callout is-warning">
+          <i data-lucide="badge-check"></i>
+          <p>Diese Werkzeuge sind nach schulischer Vorgabe für den Informatikunterricht und die entsprechend freigegebenen Prüfungssituationen vorgesehen. Für schriftliche und mündliche Abiturprüfungen gelten stets die aktuellen Prüfungsanweisungen der Schule.</p>
+        </div>
+      </section>
+      <section class="content-section">
+        <div class="section-heading">
+          <div><h2>Python kompakt</h2><p>Nutze die Muster als Erinnerung und passe Variablennamen und Werte an deine Aufgabe an.</p></div>
+        </div>
       <div class="reference-grid">
         ${content.reference.map((item) => `
           <article class="reference-card">
@@ -754,7 +839,8 @@
             <p>${escapeHtml(item.description)}</p>
             <pre>${escapeHtml(item.code)}</pre>
           </article>`).join("")}
-      </div>`;
+      </div>
+      </section>`;
   }
 
   function renderLesson(id) {
@@ -932,6 +1018,114 @@
     runtimeText.textContent = text;
   }
 
+  function safeFilePart(value) {
+    return String(value || "lernstand")
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9_-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 30) || "lernstand";
+  }
+
+  function exportFileName() {
+    return `pythonwerkstatt-${safeFilePart(state.name)}-${todayKey()}.json`;
+  }
+
+  function backupPayload() {
+    return {
+      app: "PythonWerkstatt BG",
+      formatVersion: backupFormatVersion,
+      exportedAt: new Date().toISOString(),
+      data: state
+    };
+  }
+
+  function updateBackupSummary() {
+    const summary = document.querySelector("#backupSummary");
+    if (!summary) {
+      return;
+    }
+    summary.innerHTML = `
+      <div><strong>${state.xp} XP</strong><small>Erfahrung</small></div>
+      <div><strong>${state.completedLessons.length}</strong><small>Lektionen</small></div>
+      <div><strong>${state.completedExercises.length + state.completedStructograms.length}</strong><small>Aufgaben</small></div>`;
+  }
+
+  async function exportProgress() {
+    const json = JSON.stringify(backupPayload(), null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const suggestedName = exportFileName();
+
+    if ("showSaveFilePicker" in window) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName,
+          types: [{
+            description: "PythonWerkstatt-Lernstand",
+            accept: { "application/json": [".json"] }
+          }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        toast("Lernstand gespeichert");
+        return;
+      } catch (error) {
+        if (error?.name === "AbortError") {
+          return;
+        }
+      }
+    }
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = suggestedName;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    toast("Lernstand heruntergeladen");
+  }
+
+  async function importProgressFile(file) {
+    if (!file) {
+      return;
+    }
+    if (file.size > 2_000_000) {
+      toast("Die Datei ist zu groß", "error");
+      progressFileInput.value = "";
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(await file.text());
+      if (parsed?.app !== "PythonWerkstatt BG" || !parsed.data) {
+        throw new Error("Keine PythonWerkstatt-Datei");
+      }
+      if (!Number.isInteger(parsed.formatVersion) || parsed.formatVersion > backupFormatVersion) {
+        throw new Error("Die Datei stammt aus einer neueren Version");
+      }
+      const importedState = normalizeState(parsed.data);
+      const label = importedState.name || "Gast";
+      const confirmed = window.confirm(
+        `Lernstand von ${label} mit ${importedState.xp} XP laden? Der aktuelle Browserstand wird ersetzt.`
+      );
+      if (!confirmed) {
+        return;
+      }
+      state = importedState;
+      saveState();
+      backupDialog.close();
+      renderRoute();
+      toast("Lernstand erfolgreich geladen");
+    } catch (error) {
+      toast(error.message || "Die Datei konnte nicht geladen werden", "error");
+    } finally {
+      progressFileInput.value = "";
+    }
+  }
+
   function createWorker() {
     if (worker) {
       worker.terminate();
@@ -1105,8 +1299,9 @@
   function toast(message, type = "success") {
     const region = document.querySelector("#toastRegion");
     const element = document.createElement("div");
-    element.className = `toast ${type === "xp" ? "is-xp" : ""}`;
-    element.innerHTML = `<i data-lucide="${type === "xp" ? "sparkles" : "circle-check"}"></i><strong>${escapeHtml(message)}</strong>`;
+    element.className = `toast${type === "xp" ? " is-xp" : ""}${type === "error" ? " is-error" : ""}`;
+    const icon = type === "xp" ? "sparkles" : type === "error" ? "circle-alert" : "circle-check";
+    element.innerHTML = `<i data-lucide="${icon}"></i><strong>${escapeHtml(message)}</strong>`;
     region.append(element);
     renderIcons();
     window.setTimeout(() => element.remove(), 3200);
@@ -1297,6 +1492,15 @@
     renderRoute();
     toast("Lernprofil gespeichert");
   });
+
+  document.querySelector("#backupButton").addEventListener("click", () => {
+    updateBackupSummary();
+    backupDialog.showModal();
+  });
+  document.querySelector("#backupCloseButton").addEventListener("click", () => backupDialog.close());
+  document.querySelector("#exportProgressButton").addEventListener("click", exportProgress);
+  document.querySelector("#importProgressButton").addEventListener("click", () => progressFileInput.click());
+  progressFileInput.addEventListener("change", () => importProgressFile(progressFileInput.files?.[0]));
 
   window.addEventListener("hashchange", renderRoute);
 

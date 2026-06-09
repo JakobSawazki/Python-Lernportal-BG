@@ -1217,6 +1217,30 @@ window.PYLAB_CONTENT = {
     }
   ],
 
+  tools: [
+    {
+      title: "Informatik-Stick",
+      description: "Der einfachste Start am Schul-PC: Der Informatik-Stick bündelt die benötigten und schulisch freigegebenen Programme an einem Ort.",
+      note: "Für die meisten Aufgaben reicht es, die Programme direkt über den Informatik-Stick zu starten.",
+      icon: "usb",
+      url: ""
+    },
+    {
+      title: "Thonny",
+      description: "Einsteigerfreundliche Python-Entwicklungsumgebung zum Schreiben, Speichern, Starten und schrittweisen Untersuchen eigener Programme.",
+      note: "Auf den Schul-PCs installiert und zusätzlich über den Informatik-Stick verfügbar.",
+      icon: "terminal",
+      url: "https://thonny.org/"
+    },
+    {
+      title: "hus Struktogrammer",
+      description: "Java-Anwendung zum Erstellen und Bearbeiten umfangreicher Struktogramme nach den im Unterricht verwendeten Konventionen.",
+      note: "Installiert, über den Informatik-Stick startbar und als Java-Datei in den Unterrichtsmaterialien verfügbar.",
+      icon: "workflow",
+      url: "https://struktogrammer.ch/Web_files/page1_JavaVersion.html"
+    }
+  ],
+
   reference: [
     {
       title: "Ausgabe und Variablen",
