@@ -390,6 +390,28 @@ h4 {
   padding: 22px clamp(18px, 3vw, 40px) 60px;
 }
 
+.portal-footer {
+  width: min(1280px, 100%);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 auto;
+  padding: 18px clamp(18px, 3vw, 40px) 24px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.portal-footer a {
+  color: inherit;
+  font-weight: 750;
+  text-underline-offset: 3px;
+}
+
+.portal-footer a:hover {
+  color: var(--green-700);
+}
+
 #mainContent:focus {
   outline: none;
 }
@@ -2136,6 +2158,12 @@ code {
 
 @media (max-width: 620px) {
   #mainContent {
+    padding-inline: 14px;
+  }
+
+  .portal-footer {
+    align-items: flex-start;
+    flex-direction: column;
     padding-inline: 14px;
   }
 

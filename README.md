@@ -1,6 +1,6 @@
 # PythonWerkstatt BG
 
-**Aktuelle Version:** 0.4.0
+**Aktuelle Version:** 0.5.0
 **Dokumentationsstand:** 9. Juni 2026
 **Live:** https://jakobsawazki.github.io/Python-Lernportal-BG/
 **Repository:** https://github.com/JakobSawazki/Python-Lernportal-BG
@@ -168,6 +168,11 @@ Vor Veröffentlichungen werden mindestens folgende Prüfungen durchgeführt:
 - abschließender Abruf der GitHub-Pages-Version
 
 ## Versionsverlauf
+
+### 0.5.0 – 9. Juni 2026
+
+- diskrete Projektzuordnung zu Sawazki Electronics im Portal ergänzt
+- gegenseitige Verlinkung mit der Sawazki-Electronics-Homepage eingerichtet
 
 ### 0.4.0 – 9. Juni 2026
 

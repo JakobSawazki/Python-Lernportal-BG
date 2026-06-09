@@ -12,6 +12,8 @@ Stand: 9. Juni 2026
 - Erwarteter Pfad Gerät 2: `C:\Google Drive\Lehramt\Lernfelder\Python-Lernportal-BG`
 - GitHub-Repository: `https://github.com/JakobSawazki/Python-Lernportal-BG`
 - GitHub Pages: `https://jakobsawazki.github.io/Python-Lernportal-BG/`
+- Projektzuordnung: Sawazki Electronics; Gegenlink in der Fußnavigation von
+  `https://jakobsawazki.github.io/sawazki-electronics/`
 
 Die private Materialsammlung liegt getrennt unter `...\Lernfelder\BPE5`. Sie enthält unter anderem Musterlösungen und wird absichtlich nicht in dieses öffentliche Repository kopiert.
 
