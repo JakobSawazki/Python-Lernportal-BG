@@ -8,6 +8,7 @@ Eine browserbasierte Lernumgebung für Schülerinnen und Schüler des berufliche
 
 - 12 Lektionen vom ersten `print()` bis zu Funktionen, Listen und Fehlersuche
 - 12 automatisch prüfbare Programmieraufgaben
+- Struktogramm-Labor mit fünf Grundformen und fünf geprüften Übungen
 - echter Python-Interpreter im Browser über Pyodide
 - XP, Level, Lernfortschritt und acht Erfolge
 - lokales Lernprofil ohne Server und ohne Übertragung personenbezogener Daten
@@ -32,6 +33,8 @@ Das Projekt ist bewusst ohne Build-Schritt aufgebaut:
 - `content.js` enthält Lektionen, Aufgaben und Erfolge.
 - `app.js` steuert Navigation, Lernstand, Auswertung und UI.
 - `python-worker.js` führt Python isoliert in einem Web Worker aus.
+
+![Struktogramm-Labor](docs/screenshots/struktogramme-desktop.png)
 
 Der Lernstand wird ausschließlich im `localStorage` des verwendeten Browsers gespeichert.
 

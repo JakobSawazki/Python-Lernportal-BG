@@ -17,7 +17,9 @@
     xp: 0,
     completedLessons: [],
     completedExercises: [],
+    completedStructograms: [],
     drafts: {},
+    structogramDrafts: {},
     activityDates: [],
     lastLessonId: "sequenz"
   };
@@ -46,7 +48,11 @@
         ...stored,
         completedLessons: Array.isArray(stored?.completedLessons) ? stored.completedLessons : [],
         completedExercises: Array.isArray(stored?.completedExercises) ? stored.completedExercises : [],
+        completedStructograms: Array.isArray(stored?.completedStructograms) ? stored.completedStructograms : [],
         drafts: stored?.drafts && typeof stored.drafts === "object" ? stored.drafts : {},
+        structogramDrafts: stored?.structogramDrafts && typeof stored.structogramDrafts === "object"
+          ? stored.structogramDrafts
+          : {},
         activityDates: Array.isArray(stored?.activityDates) ? stored.activityDates : []
       };
     } catch {
@@ -86,6 +92,10 @@
 
   function moduleById(id) {
     return content.modules.find((module) => module.id === id);
+  }
+
+  function structogramExerciseById(id) {
+    return content.structograms.exercises.find((exercise) => exercise.id === id);
   }
 
   function currentLevel() {
@@ -138,7 +148,15 @@
   }
 
   function award(kind, id, xp) {
-    const key = kind === "lesson" ? "completedLessons" : "completedExercises";
+    const keyByKind = {
+      lesson: "completedLessons",
+      exercise: "completedExercises",
+      structogram: "completedStructograms"
+    };
+    const key = keyByKind[kind];
+    if (!key) {
+      return false;
+    }
     if (state[key].includes(id)) {
       return false;
     }
@@ -167,6 +185,12 @@
     }
     if (condition.type === "exercises") {
       return state.completedExercises.length >= condition.value;
+    }
+    if (condition.type === "structograms") {
+      return state.completedStructograms.length >= condition.value;
+    }
+    if (condition.type === "allStructograms") {
+      return state.completedStructograms.length === content.structograms.exercises.length;
     }
     if (condition.type === "module") {
       return moduleProgress(moduleById(condition.value)).percent === 100;
@@ -262,6 +286,89 @@
       </article>`;
   }
 
+  function structogramExerciseCard(exercise) {
+    const completed = state.completedStructograms.includes(exercise.id);
+    return `
+      <article class="exercise-card structure-exercise-card" tabindex="0" role="button"
+        data-structogram="${exercise.id}" aria-label="${escapeHtml(exercise.title)} öffnen">
+        <span class="lesson-state ${completed ? "is-done" : ""}">
+          <i data-lucide="${completed ? "check" : "workflow"}"></i>
+        </span>
+        <span class="lesson-index">${exercise.number}</span>
+        <h3>${escapeHtml(exercise.title)}</h3>
+        <p>${escapeHtml(exercise.description)}</p>
+        <div class="exercise-meta">
+          <span class="meta-pill difficulty-${exercise.difficulty}">${difficultyLabel(exercise.difficulty)}</span>
+          <span class="meta-pill"><i data-lucide="sparkles"></i>${exercise.xp} XP</span>
+        </div>
+      </article>`;
+  }
+
+  function renderStructureValue(value, exercise, answers = {}) {
+    if (typeof value === "string") {
+      return `<span>${escapeHtml(value)}</span>`;
+    }
+    if (!value?.slot || !exercise?.slots?.[value.slot]) {
+      return "<span>...</span>";
+    }
+    const slot = exercise.slots[value.slot];
+    const selected = answers[value.slot] || "";
+    return `
+      <label class="structure-slot ${slot.prefix ? "has-prefix" : ""}">
+        <span class="sr-only">${escapeHtml(slot.label)}</span>
+        ${slot.prefix ? `<span class="structure-slot-prefix">${escapeHtml(slot.prefix)}</span>` : ""}
+        <select data-structure-slot="${value.slot}" aria-label="${escapeHtml(slot.label)}"
+          title="${escapeHtml(selected || slot.label)}">
+          <option value="">Bitte wählen ...</option>
+          ${slot.options.map((option) => `
+            <option value="${escapeHtml(option)}" ${selected === option ? "selected" : ""}>${escapeHtml(option)}</option>
+          `).join("")}
+        </select>
+      </label>`;
+  }
+
+  function renderStructureNodes(nodes, exercise = null, answers = {}) {
+    return nodes.map((node) => {
+      if (node.type === "statement") {
+        return `<div class="stg-statement">${renderStructureValue(node.text, exercise, answers)}</div>`;
+      }
+      if (node.type === "if") {
+        const hasNoBranch = Array.isArray(node.no) && node.no.length > 0;
+        return `
+          <div class="stg-decision ${hasNoBranch ? "" : "is-one-sided"}">
+            <div class="stg-decision-head">
+              <strong>${renderStructureValue(node.condition, exercise, answers)}</strong>
+              <span class="stg-diagonal is-left"></span>
+              <span class="stg-diagonal is-right"></span>
+              <span class="stg-branch-label is-yes">J</span>
+              <span class="stg-branch-label is-no">N</span>
+            </div>
+            <div class="stg-branches ${hasNoBranch ? "" : "is-one-sided"}">
+              <div class="stg-branch">${renderStructureNodes(node.yes || [], exercise, answers)}</div>
+              ${hasNoBranch
+                ? `<div class="stg-branch">${renderStructureNodes(node.no, exercise, answers)}</div>`
+                : `<div class="stg-branch is-empty"><span>keine Anweisung</span></div>`}
+            </div>
+          </div>`;
+      }
+      if (node.type === "loop") {
+        return `
+          <div class="stg-loop stg-loop-${node.loopType}">
+            <div class="stg-loop-head">
+              <span class="stg-loop-kind">${node.loopType === "for" ? "Zählergesteuert" : "Kopfgesteuert"}</span>
+              <strong>${renderStructureValue(node.header, exercise, answers)}</strong>
+            </div>
+            <div class="stg-loop-body">${renderStructureNodes(node.body || [], exercise, answers)}</div>
+          </div>`;
+      }
+      return "";
+    }).join("");
+  }
+
+  function renderStructogram(diagram, exercise = null, answers = {}) {
+    return `<div class="stg-diagram">${renderStructureNodes(diagram, exercise, answers)}</div>`;
+  }
+
   function renderHome() {
     setHeading("Deine Lernzentrale", "Übersicht");
     activateNav("home");
@@ -303,6 +410,25 @@
         <div class="stat-item">
           <span class="stat-icon is-coral"><i data-lucide="flame"></i></span>
           <div><strong>${streak()} ${streak() === 1 ? "Tag" : "Tage"}</strong><small>Aktuelle Serie</small></div>
+        </div>
+      </section>
+
+      <section class="structure-promo">
+        <div>
+          <p class="eyebrow">Bildungsplan-Werkzeug</p>
+          <h2>Algorithmen als Struktogramm denken</h2>
+          <p>Plane Sequenzen, Entscheidungen und Schleifen zunächst unabhängig von Python. Fünf interaktive Aufgaben führen von der Grundform bis zur geschachtelten Alternative.</p>
+          <div class="lesson-meta">
+            <span class="meta-pill"><i data-lucide="workflow"></i>${state.completedStructograms.length} / ${content.structograms.exercises.length} gelöst</span>
+            <span class="meta-pill"><i data-lucide="sparkles"></i>bis zu 200 XP</span>
+          </div>
+          <button class="button button-primary" type="button" data-route="structograms">
+            <i data-lucide="arrow-right"></i>
+            Struktogramm-Labor öffnen
+          </button>
+        </div>
+        <div class="structure-promo-preview" aria-hidden="true">
+          ${renderStructogram(content.structograms.examples[1].diagram)}
         </div>
       </section>
 
@@ -395,6 +521,205 @@
         `).join("")}
       </div>
       <div class="exercise-grid">${filtered.map(exerciseCard).join("")}</div>`;
+  }
+
+  function renderStructograms() {
+    setHeading("Planen vor dem Programmieren", "Struktogramme");
+    activateNav("structograms");
+    const total = content.structograms.exercises.length;
+    const done = state.completedStructograms.length;
+    const percent = progressPercent(done, total);
+    main.innerHTML = `
+      <section class="structure-lead">
+        <div>
+          <p class="eyebrow">Nassi-Shneiderman-Diagramme</p>
+          <h2>Erst den Ablauf klären, dann Python schreiben.</h2>
+          <p>Ein Struktogramm beschreibt einen Algorithmus mit ineinander gesetzten Blöcken. Es zeigt Reihenfolge, Auswahl und Wiederholung, ohne sich an die Schreibweise einer Programmiersprache zu binden.</p>
+          <div class="button-row">
+            <button class="button button-primary" type="button"
+              data-structogram="${content.structograms.exercises.find((exercise) => !state.completedStructograms.includes(exercise.id))?.id || content.structograms.exercises[0].id}">
+              <i data-lucide="play"></i>
+              ${done ? "Weiterüben" : "Erste Aufgabe starten"}
+            </button>
+            <a class="button button-secondary" href="https://www.schule-bw.de/faecher-und-schularten/mathematisch-naturwissenschaftliche-faecher/informatik/material/materialien-zum-neuen-bildungsplan-informatik-an-den-nichtgewerblichen-beruflichen-gymnasien/operatorenliste-fuer-struktogramme-v2-2.pdf"
+              target="_blank" rel="noreferrer">
+              <i data-lucide="file-text"></i>
+              Offizielle Operatorenliste
+            </a>
+          </div>
+        </div>
+        <div class="structure-progress-panel">
+          <small>Dein Fortschritt</small>
+          <strong>${percent} %</strong>
+          <div class="progress-track"><span style="width:${percent}%"></span></div>
+          <span>${done} von ${total} Aufgaben gelöst</span>
+        </div>
+      </section>
+
+      <section class="content-section">
+        <div class="section-heading">
+          <div>
+            <h2>Die Bausteine lesen</h2>
+            <p>Die Form zeigt die Kontrollstruktur, der Text beschreibt die konkrete Handlung.</p>
+          </div>
+        </div>
+        <div class="operator-grid">
+          ${content.structograms.operators.map((operator) => `
+            <article class="operator-item">
+              <span class="stat-icon"><i data-lucide="${operator.icon}"></i></span>
+              <div>
+                <h3>${escapeHtml(operator.title)}</h3>
+                <code>${escapeHtml(operator.syntax)}</code>
+                <p>${escapeHtml(operator.example)}</p>
+              </div>
+            </article>`).join("")}
+        </div>
+      </section>
+
+      <section class="content-section">
+        <div class="section-heading">
+          <div>
+            <h2>Fünf Grundformen</h2>
+            <p>Vergleiche das sprachneutrale Struktogramm jeweils mit dem passenden Python-Code.</p>
+          </div>
+        </div>
+        <div class="structure-example-list">
+          ${content.structograms.examples.map((example, index) => `
+            <article class="structure-example">
+              <div class="structure-example-heading">
+                <span class="module-number">${String(index + 1).padStart(2, "0")}</span>
+                <div>
+                  <h3>${escapeHtml(example.title)}</h3>
+                  <p>${escapeHtml(example.description)}</p>
+                </div>
+              </div>
+              <div class="structure-compare">
+                <div>
+                  <span class="compare-label">Struktogramm</span>
+                  ${renderStructogram(example.diagram)}
+                </div>
+                <div>
+                  <span class="compare-label">Python</span>
+                  <pre class="code-example"><code>${escapeHtml(example.python)}</code></pre>
+                </div>
+              </div>
+            </article>`).join("")}
+        </div>
+      </section>
+
+      <section class="content-section">
+        <div class="section-heading">
+          <div>
+            <h2>Jetzt selbst planen</h2>
+            <p>Die Aufgaben werden automatisch geprüft und vergeben XP nur beim ersten erfolgreichen Abschluss.</p>
+          </div>
+        </div>
+        <div class="exercise-grid">${content.structograms.exercises.map(structogramExerciseCard).join("")}</div>
+      </section>
+
+      <section class="structure-tool-note">
+        <div>
+          <p class="eyebrow">Zugelassenes Hilfsmittel</p>
+          <h2>hus Struktogrammer</h2>
+          <p>Für umfangreichere Zeichnungen kann der offizielle Java-Editor verwendet werden. Das Labor hier im Portal dient zum Verstehen und Üben direkt im Browser.</p>
+        </div>
+        <a class="button button-secondary" href="https://struktogrammer.ch/Web_files/page1_JavaVersion.html"
+          target="_blank" rel="noreferrer">
+          <i data-lucide="external-link"></i>
+          Projektseite öffnen
+        </a>
+      </section>`;
+  }
+
+  function getStructogramDraft(exercise) {
+    if (exercise.type === "order") {
+      const storedOrder = state.structogramDrafts[exercise.id]?.order;
+      const valid = Array.isArray(storedOrder) &&
+        storedOrder.length === exercise.blocks.length &&
+        storedOrder.every((id) => exercise.blocks.some((block) => block.id === id));
+      return { order: valid ? storedOrder : exercise.blocks.map((block) => block.id) };
+    }
+    return { answers: state.structogramDrafts[exercise.id]?.answers || {} };
+  }
+
+  function renderOrderDiagram(exercise, order) {
+    const blockById = new Map(exercise.blocks.map((block) => [block.id, block]));
+    return `
+      <div class="order-workspace">
+        ${order.map((id, index) => {
+          const block = blockById.get(id);
+          return `
+            <div class="order-block">
+              <span class="order-number">${index + 1}</span>
+              <span>${escapeHtml(block.text)}</span>
+              <div class="order-controls">
+                <button class="icon-button" type="button" data-order-action="up" data-block-id="${id}"
+                  title="Nach oben" aria-label="${escapeHtml(block.text)} nach oben" ${index === 0 ? "disabled" : ""}>
+                  <i data-lucide="arrow-up"></i>
+                </button>
+                <button class="icon-button" type="button" data-order-action="down" data-block-id="${id}"
+                  title="Nach unten" aria-label="${escapeHtml(block.text)} nach unten" ${index === order.length - 1 ? "disabled" : ""}>
+                  <i data-lucide="arrow-down"></i>
+                </button>
+              </div>
+            </div>`;
+        }).join("")}
+      </div>`;
+  }
+
+  function renderStructogramExercise(id) {
+    const exercise = structogramExerciseById(id);
+    if (!exercise) {
+      go("structograms");
+      return;
+    }
+    setHeading(`Struktogramm-Aufgabe ${exercise.number}`, exercise.title);
+    activateNav("structograms");
+    const draft = getStructogramDraft(exercise);
+    const completed = state.completedStructograms.includes(exercise.id);
+    main.innerHTML = `
+      <button class="text-button back-button" type="button" data-route="structograms">
+        <i data-lucide="arrow-left"></i>
+        Zum Struktogramm-Labor
+      </button>
+      <div class="structure-workspace">
+        <aside class="structure-brief">
+          <div class="exercise-meta">
+            <span class="meta-pill difficulty-${exercise.difficulty}">${difficultyLabel(exercise.difficulty)}</span>
+            <span class="meta-pill"><i data-lucide="sparkles"></i>${exercise.xp} XP</span>
+          </div>
+          <h2>${escapeHtml(exercise.title)}</h2>
+          <p>${escapeHtml(exercise.description)}</p>
+          <ol>${exercise.instructions.map((instruction) => `<li>${escapeHtml(instruction)}</li>`).join("")}</ol>
+          <div class="callout">
+            <i data-lucide="lightbulb"></i>
+            <p>Arbeite vom Problem aus: Welche Werte werden zuerst benötigt, welche Struktur steuert den Ablauf und in welchen Block gehört jede Anweisung?</p>
+          </div>
+        </aside>
+        <section class="structure-canvas-panel">
+          <div class="structure-canvas-heading">
+            <div>
+              <p class="eyebrow">${exercise.type === "order" ? "Reihenfolge festlegen" : "Bausteine auswählen"}</p>
+              <h3>Dein Struktogramm</h3>
+            </div>
+            ${completed ? `<span class="completion-chip"><i data-lucide="circle-check"></i> Gelöst</span>` : ""}
+          </div>
+          ${exercise.type === "order"
+            ? renderOrderDiagram(exercise, draft.order)
+            : renderStructogram(exercise.diagram, exercise, draft.answers)}
+          <div class="structure-actions">
+            <button class="button button-secondary" type="button" id="resetStructureButton">
+              <i data-lucide="rotate-ccw"></i>
+              Zurücksetzen
+            </button>
+            <button class="button button-primary" type="button" id="checkStructureButton">
+              <i data-lucide="badge-check"></i>
+              Struktogramm prüfen
+            </button>
+          </div>
+          <div class="result-banner" id="resultBanner"></div>
+        </section>
+      </div>`;
   }
 
   function renderAchievements() {
@@ -728,6 +1053,55 @@
     }
   }
 
+  function saveStructogramDraft(exerciseId, draft) {
+    state.structogramDrafts[exerciseId] = draft;
+    saveState();
+  }
+
+  function moveStructureBlock(exercise, blockId, direction) {
+    const draft = getStructogramDraft(exercise);
+    const index = draft.order.indexOf(blockId);
+    const target = direction === "up" ? index - 1 : index + 1;
+    if (index < 0 || target < 0 || target >= draft.order.length) {
+      return;
+    }
+    [draft.order[index], draft.order[target]] = [draft.order[target], draft.order[index]];
+    saveStructogramDraft(exercise.id, draft);
+    renderStructogramExercise(exercise.id);
+    renderIcons();
+  }
+
+  function checkStructogramExercise() {
+    const exercise = structogramExerciseById(parseRoute().id);
+    if (!exercise) {
+      return;
+    }
+    const draft = getStructogramDraft(exercise);
+    let passed = false;
+    let incomplete = false;
+
+    if (exercise.type === "order") {
+      passed = exercise.expected.every((id, index) => draft.order[index] === id);
+    } else {
+      const entries = Object.entries(exercise.slots);
+      incomplete = entries.some(([slotId]) => !draft.answers[slotId]);
+      passed = !incomplete && entries.every(([slotId, slot]) => draft.answers[slotId] === slot.answer);
+    }
+
+    if (passed) {
+      const firstCompletion = award("structogram", exercise.id, exercise.xp);
+      showResult(true, "Struktogramm stimmt", firstCompletion
+        ? `Der Ablauf ist schlüssig. ${exercise.xp} XP wurden gutgeschrieben.`
+        : "Der Ablauf ist weiterhin korrekt.");
+    } else if (incomplete) {
+      showResult(false, "Noch nicht vollständig", "Fülle zuerst alle freien Bausteine aus.");
+    } else {
+      showResult(false, "Prüfe den Ablauf noch einmal", exercise.type === "order"
+        ? "Einlesen kommt vor der Berechnung, die Ausgabe danach."
+        : "Achte besonders auf Wahrheitsrichtung, Grenzen und die Veränderung innerhalb einer Schleife.");
+    }
+  }
+
   function toast(message, type = "success") {
     const region = document.querySelector("#toastRegion");
     const element = document.createElement("div");
@@ -750,6 +1124,8 @@
       renderHome();
     } else if (route.name === "path") {
       renderPath();
+    } else if (route.name === "structograms") {
+      renderStructograms();
     } else if (route.name === "practice") {
       renderPractice();
     } else if (route.name === "achievements") {
@@ -760,6 +1136,8 @@
       renderLesson(route.id);
     } else if (route.name === "exercise") {
       renderExercise(route.id);
+    } else if (route.name === "structogram") {
+      renderStructogramExercise(route.id);
     } else {
       go("home");
       return;
@@ -774,8 +1152,10 @@
     const routeButton = event.target.closest("[data-route]");
     const lessonButton = event.target.closest("[data-lesson]");
     const exerciseButton = event.target.closest("[data-exercise]");
+    const structogramButton = event.target.closest("[data-structogram]");
     const filterButton = event.target.closest("[data-filter]");
     const runnerTab = event.target.closest("[data-runner-tab]");
+    const orderButton = event.target.closest("[data-order-action]");
 
     if (routeButton) {
       event.preventDefault();
@@ -786,6 +1166,9 @@
     }
     if (exerciseButton) {
       go(`exercise/${exerciseButton.dataset.exercise}`);
+    }
+    if (structogramButton) {
+      go(`structogram/${structogramButton.dataset.structogram}`);
     }
     if (filterButton) {
       exerciseFilter = filterButton.dataset.filter;
@@ -807,6 +1190,15 @@
     if (event.target.closest("#checkCodeButton")) {
       runExercise(true);
     }
+    if (event.target.closest("#checkStructureButton")) {
+      checkStructogramExercise();
+    }
+    if (orderButton) {
+      const exercise = structogramExerciseById(parseRoute().id);
+      if (exercise) {
+        moveStructureBlock(exercise, orderButton.dataset.blockId, orderButton.dataset.orderAction);
+      }
+    }
     if (event.target.closest("#resetCodeButton")) {
       const exercise = exerciseById(parseRoute().id);
       const editor = document.querySelector("#codeEditor");
@@ -818,16 +1210,27 @@
         document.querySelector("#resultBanner").className = "result-banner";
       }
     }
+    if (event.target.closest("#resetStructureButton")) {
+      const exercise = structogramExerciseById(parseRoute().id);
+      if (exercise && window.confirm("Dein Struktogramm auf den Startzustand zurücksetzen?")) {
+        delete state.structogramDrafts[exercise.id];
+        saveState();
+        renderStructogramExercise(exercise.id);
+        renderIcons();
+      }
+    }
   });
 
   document.addEventListener("keydown", (event) => {
-    const card = event.target.closest("[data-lesson], [data-exercise]");
+    const card = event.target.closest("[data-lesson], [data-exercise], [data-structogram]");
     if (card && (event.key === "Enter" || event.key === " ")) {
       event.preventDefault();
       if (card.dataset.lesson) {
         go(`lesson/${card.dataset.lesson}`);
-      } else {
+      } else if (card.dataset.exercise) {
         go(`exercise/${card.dataset.exercise}`);
+      } else {
+        go(`structogram/${card.dataset.structogram}`);
       }
     }
 
@@ -838,6 +1241,21 @@
       editor.setRangeText("    ", start, editor.selectionEnd, "end");
       editor.dispatchEvent(new Event("input"));
     }
+  });
+
+  document.addEventListener("change", (event) => {
+    const slot = event.target.closest("[data-structure-slot]");
+    if (!slot) {
+      return;
+    }
+    const exercise = structogramExerciseById(parseRoute().id);
+    if (!exercise) {
+      return;
+    }
+    const draft = getStructogramDraft(exercise);
+    draft.answers[slot.dataset.structureSlot] = slot.value;
+    saveStructogramDraft(exercise.id, draft);
+    document.querySelector("#resultBanner").className = "result-banner";
   });
 
   document.addEventListener("submit", (event) => {

@@ -39,11 +39,11 @@ Das offizielle Kompetenzraster gliedert die Einheit in drei Bereiche:
 | `for`-Schleifen ikonisch entwickeln | Später unmittelbar in Python umgesetzt |
 | `while`-Schleifen ikonisch entwickeln | Später unmittelbar in Python umgesetzt |
 | Alternativen ikonisch entwickeln | Später unmittelbar in Python umgesetzt |
-| Abläufe als Struktogramm darstellen | Noch nicht umgesetzt |
+| Abläufe als Struktogramm darstellen | Im Struktogramm-Labor umgesetzt |
 
-**Bewertung:** Die algorithmischen Grundideen sind vorhanden. Der visuelle
-Einstieg über MyKara beziehungsweise Greenfoot und die Übersetzung zwischen
-Struktogramm und Programmcode fehlen noch.
+**Bewertung:** Die algorithmischen Grundideen und die Übersetzung zwischen
+Struktogramm und Python sind vorhanden. Der konkrete Einstieg über MyKara
+beziehungsweise Greenfoot ist nicht Bestandteil des browserbasierten Portals.
 
 ### Lernfortschritt 2: Python-Grundlagen
 
@@ -55,7 +55,7 @@ Struktogramm und Programmcode fehlen noch.
 | Rechenoperatoren | 03 Rechnen mit Python | vollständig |
 | Benutzereingaben und Typumwandlung | 04 Eingaben und Umwandlung | vollständig |
 | Funktionen, Parameter und Rückgabewerte | 10 Funktionen | vollständig |
-| Programme als Struktogramm dokumentieren | mehrere Teilziele | noch nicht umgesetzt |
+| Programme als Struktogramm dokumentieren | Struktogramm-Labor | als geführte Übungen umgesetzt |
 | Grafische Benutzeroberflächen | Zusatzinhalt | noch nicht umgesetzt |
 
 **Bewertung:** Der verpflichtende Python-Kern ist sehr gut abgedeckt. Thonny
@@ -69,15 +69,15 @@ später als Python-Plus-Modul ergänzt werden.
 | --- | --- | --- |
 | Einseitige Verzweigung | 05 Vergleiche und `if` | vollständig |
 | Zweiseitige Verzweigung | 06 `if`, `elif` und `else` | vollständig |
-| Geschachtelte Verzweigung | 06 und 07 | bisher nur indirekt |
+| Geschachtelte Verzweigung | Struktogramm-Labor, Aufgabe S5 | ausdrücklich umgesetzt |
 | `and`, `or` und `not` | 07 Logische Operatoren | vollständig |
 | Zählerschleife `for` | 08 `for`-Schleifen | vollständig |
 | Kopfgesteuerte Schleife `while` | 09 `while`-Schleifen | vollständig |
-| Kontrollstrukturen als Struktogramm | mehrere Teilziele | noch nicht umgesetzt |
+| Kontrollstrukturen als Struktogramm | Struktogramm-Labor | vollständig als Grundformen und Übungen |
 
-**Bewertung:** Die Python-Kontrollstrukturen sind vorhanden. Eine eigene
-Erklärung und Aufgabe zur geschachtelten Verzweigung sollte ergänzt werden.
-Struktogramme sind der größte noch offene bildungsplanbezogene Baustein.
+**Bewertung:** Die Python-Kontrollstrukturen und ihre Darstellung als
+Struktogramm sind vorhanden. Die geschachtelte Verzweigung wird in einer
+eigenen interaktiven Aufgabe behandelt.
 
 ## Bewusste Erweiterungen
 
@@ -88,15 +88,11 @@ die Selbstständigkeit beim Üben stärken.
 
 ## Priorisierte Weiterentwicklung
 
-1. Ein Lernbereich „Vom Problem zum Struktogramm“ mit Sequenz, Alternative und
-   Wiederholung.
-2. Struktogramm-Aufgaben mit einer browsergeeigneten Darstellung oder einer
-   sicheren Anbindung des hus-Struktogrammers.
-3. Eine ausdrückliche Lektion beziehungsweise Übung zu geschachtelten
-   Verzweigungen.
-4. Ein optionales GUI-Kapitel, sofern es im konkreten Unterricht eingesetzt
+1. Weitere Struktogramm-Aufgaben mit alltagsnahen Transferproblemen ergänzen.
+2. Optional einen freien Struktogramm-Editor oder einen Export entwickeln.
+3. Ein optionales GUI-Kapitel, sofern es im konkreten Unterricht eingesetzt
    wird.
-5. Eine Kompetenzansicht, die den Lernenden die offiziellen Ich-kann-Ziele in
+4. Eine Kompetenzansicht, die den Lernenden die offiziellen Ich-kann-Ziele in
    verständlicher Sprache zeigt.
 
 ## Urheberrechtliche Grenze

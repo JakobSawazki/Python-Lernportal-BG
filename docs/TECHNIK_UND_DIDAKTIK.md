@@ -45,6 +45,8 @@ Die Aufgabenprüfung verwendet je nach Lernziel:
 - Ministerium für Kultus, Jugend und Sport Baden-Württemberg: [Bildungsplan Informatik, nichtgewerbliche Berufliche Gymnasien](https://www.bildungsplaene-bw.de/In_OS_nichtTG)
 - Landesbildungsserver Baden-Württemberg: [Materialien zum Bildungsplan Informatik an den nichtgewerblichen Beruflichen Gymnasien](https://www.schule-bw.de/faecher-und-schularten/mathematisch-naturwissenschaftliche-faecher/informatik/material/materialien-zum-neuen-bildungsplan-informatik-an-den-nichtgewerblichen-beruflichen-gymnasien)
 - Landesbildungsserver Baden-Württemberg: [Grundlagen der Programmierung – Version mit Python, Stand 31.07.2025](https://www.schule-bw.de/resolveuid/4bf04e3081af47f9aa0a7455778f3cbe)
+- Landesbildungsserver Baden-Württemberg: [Operatorenliste für Struktogramme, Version 2.2 vom 01.09.2024](https://www.schule-bw.de/faecher-und-schularten/mathematisch-naturwissenschaftliche-faecher/informatik/material/materialien-zum-neuen-bildungsplan-informatik-an-den-nichtgewerblichen-beruflichen-gymnasien/operatorenliste-fuer-struktogramme-v2-2.pdf)
+- hus Struktogrammer: [Offizielle Projektseite der Java-Version](https://struktogrammer.ch/Web_files/page1_JavaVersion.html)
 - Pyodide: [Using Pyodide in a web worker](https://pyodide.org/en/stable/usage/webworker.html)
 - Lucide: [Lucide Icons](https://lucide.dev/)
 
@@ -57,6 +59,22 @@ Es wurden keine Musterlösungen und keine privaten Originaldateien in das
 
 Der detaillierte Soll-Ist-Abgleich ist in
 [`BPE5_ABGLEICH_2025.md`](BPE5_ABGLEICH_2025.md) dokumentiert.
+
+## Struktogramm-Labor
+
+Das Labor rendert Nassi-Shneiderman-Strukturen direkt mit HTML und CSS. Es
+benötigt weder Java noch ein Browser-Plugin. Enthalten sind:
+
+- Sequenz
+- zweiseitige Alternative
+- zählergesteuerte Schleife
+- kopfgesteuerte Schleife
+- geschachtelte Alternative
+
+Fünf Übungen prüfen Reihenfolge oder ausgewählte Operatoren automatisch. Auf
+kleinen Bildschirmen werden J- und N-Zweig untereinander dargestellt, damit
+auch geschachtelte Strukturen vollständig lesbar bleiben. Für umfangreichere
+freie Zeichnungen verweist das Portal auf den hus Struktogrammer.
 
 ## Bildnachweis
 

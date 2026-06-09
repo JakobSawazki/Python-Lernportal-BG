@@ -792,6 +792,358 @@ window.PYLAB_CONTENT = {
     }
   ],
 
+  structograms: {
+    operators: [
+      {
+        title: "Deklaration und Initialisierung",
+        syntax: "variable |als datentyp| = wert",
+        example: "Deklaration und Initialisierung: punkte als Ganzzahl = 0",
+        icon: "archive-restore"
+      },
+      {
+        title: "Zuweisung",
+        syntax: "element = wert",
+        example: "Zuweisung: flaeche = breite * hoehe",
+        icon: "arrow-right-left"
+      },
+      {
+        title: "Einlesen",
+        syntax: "variable |als datentyp|",
+        example: "Deklaration und Einlesen: alter als Ganzzahl",
+        icon: "keyboard"
+      },
+      {
+        title: "Ausgabe",
+        syntax: "Ausgabe: inhalt",
+        example: "Ausgabe: \"Die Fläche beträgt \" + flaeche",
+        icon: "monitor-up"
+      },
+      {
+        title: "Verzweigung",
+        syntax: "Wenn bedingung, dann ..., sonst ...",
+        example: "alter >= 18",
+        icon: "split"
+      },
+      {
+        title: "Kopfgesteuerte Schleife",
+        syntax: "Wiederhole solange bedingung",
+        example: "Wiederhole solange guthaben < 100",
+        icon: "refresh-cw"
+      },
+      {
+        title: "Zählergesteuerte Schleife",
+        syntax: "Zähle variable von start bis ende, Schrittweite ...",
+        example: "Zähle i von 1 bis 10, Schrittweite 1",
+        icon: "repeat-2"
+      },
+      {
+        title: "Aufruf und Rückgabe",
+        syntax: "Aufruf: funktion(parameter) / Rückgabe: wert",
+        example: "Rückgabe: breite * hoehe",
+        icon: "package-open"
+      }
+    ],
+
+    examples: [
+      {
+        id: "sequence",
+        title: "Sequenz",
+        description: "Anweisungen werden von oben nach unten genau einmal ausgeführt.",
+        diagram: [
+          { type: "statement", text: "Deklaration und Einlesen: breite als Dezimalzahl" },
+          { type: "statement", text: "Deklaration und Einlesen: hoehe als Dezimalzahl" },
+          { type: "statement", text: "Zuweisung: flaeche = breite * hoehe" },
+          { type: "statement", text: "Ausgabe: \"Fläche: \" + flaeche" }
+        ],
+        python: "breite = float(input(\"Breite: \"))\nhoehe = float(input(\"Höhe: \"))\nflaeche = breite * hoehe\nprint(\"Fläche:\", flaeche)"
+      },
+      {
+        id: "alternative",
+        title: "Zweiseitige Alternative",
+        description: "Abhängig von einer Bedingung wird genau einer von zwei Wegen gewählt.",
+        diagram: [
+          { type: "statement", text: "Deklaration und Einlesen: alter als Ganzzahl" },
+          {
+            type: "if",
+            condition: "alter >= 18",
+            yes: [{ type: "statement", text: "Ausgabe: \"volljährig\"" }],
+            no: [{ type: "statement", text: "Ausgabe: \"minderjährig\"" }]
+          }
+        ],
+        python: "alter = int(input(\"Alter: \"))\nif alter >= 18:\n    print(\"volljährig\")\nelse:\n    print(\"minderjährig\")"
+      },
+      {
+        id: "for-loop",
+        title: "Zählergesteuerte Schleife",
+        description: "Die Anzahl der Wiederholungen wird durch Zählvariable und Grenzen festgelegt.",
+        diagram: [
+          {
+            type: "loop",
+            loopType: "for",
+            header: "Zähle i von 1 bis 5, Schrittweite 1",
+            body: [{ type: "statement", text: "Ausgabe: i * 5" }]
+          }
+        ],
+        python: "for i in range(1, 6):\n    print(i * 5)"
+      },
+      {
+        id: "while-loop",
+        title: "Kopfgesteuerte Schleife",
+        description: "Vor jedem Durchlauf wird geprüft, ob die Bedingung weiterhin wahr ist.",
+        diagram: [
+          { type: "statement", text: "Deklaration und Initialisierung: guthaben = 40" },
+          {
+            type: "loop",
+            loopType: "while",
+            header: "Wiederhole solange guthaben < 100",
+            body: [{ type: "statement", text: "Zuweisung: guthaben = guthaben + 15" }]
+          },
+          { type: "statement", text: "Ausgabe: guthaben" }
+        ],
+        python: "guthaben = 40\nwhile guthaben < 100:\n    guthaben = guthaben + 15\nprint(guthaben)"
+      },
+      {
+        id: "nested",
+        title: "Geschachtelte Alternative",
+        description: "In einem Zweig liegt eine weitere Entscheidung. So entstehen mehr als zwei Fälle.",
+        diagram: [
+          { type: "statement", text: "Deklaration und Einlesen: punkte als Ganzzahl" },
+          {
+            type: "if",
+            condition: "punkte >= 50",
+            yes: [
+              {
+                type: "if",
+                condition: "punkte >= 80",
+                yes: [{ type: "statement", text: "Ausgabe: \"sehr gut bestanden\"" }],
+                no: [{ type: "statement", text: "Ausgabe: \"bestanden\"" }]
+              }
+            ],
+            no: [{ type: "statement", text: "Ausgabe: \"nicht bestanden\"" }]
+          }
+        ],
+        python: "punkte = int(input(\"Punkte: \"))\nif punkte >= 50:\n    if punkte >= 80:\n        print(\"sehr gut bestanden\")\n    else:\n        print(\"bestanden\")\nelse:\n    print(\"nicht bestanden\")"
+      }
+    ],
+
+    exercises: [
+      {
+        id: "stg-sequenz",
+        number: "S1",
+        title: "Flächenberechnung ordnen",
+        description: "Bringe Einlesen, Berechnung und Ausgabe in eine sinnvolle Sequenz.",
+        difficulty: "easy",
+        xp: 30,
+        type: "order",
+        instructions: [
+          "Lies zuerst Breite und Höhe ein.",
+          "Berechne danach die Fläche.",
+          "Gib das Ergebnis zum Schluss aus."
+        ],
+        blocks: [
+          { id: "height", text: "Deklaration und Einlesen: hoehe als Dezimalzahl" },
+          { id: "output", text: "Ausgabe: \"Fläche: \" + flaeche" },
+          { id: "width", text: "Deklaration und Einlesen: breite als Dezimalzahl" },
+          { id: "calculate", text: "Zuweisung: flaeche = breite * hoehe" }
+        ],
+        expected: ["width", "height", "calculate", "output"]
+      },
+      {
+        id: "stg-alternative",
+        number: "S2",
+        title: "Eintritt entscheiden",
+        description: "Vervollständige eine zweiseitige Alternative mit passenden Operatoren.",
+        difficulty: "easy",
+        xp: 35,
+        type: "slots",
+        instructions: [
+          "Ab 18 Jahren gilt eine Person als volljährig.",
+          "Der J-Zweig wird bei einer wahren Bedingung ausgeführt.",
+          "Der N-Zweig wird bei einer falschen Bedingung ausgeführt."
+        ],
+        slots: {
+          condition: {
+            label: "Bedingung wählen",
+            options: ["alter = 18", "alter >= 18", "alter < 18"],
+            answer: "alter >= 18"
+          },
+          yes: {
+            label: "J-Zweig wählen",
+            options: ["Ausgabe: \"minderjährig\"", "Ausgabe: \"volljährig\"", "Zuweisung: alter = 18"],
+            answer: "Ausgabe: \"volljährig\""
+          },
+          no: {
+            label: "N-Zweig wählen",
+            options: ["Ausgabe: \"minderjährig\"", "Ausgabe: \"volljährig\"", "Einlesen: alter"],
+            answer: "Ausgabe: \"minderjährig\""
+          }
+        },
+        diagram: [
+          { type: "statement", text: "Deklaration und Einlesen: alter als Ganzzahl" },
+          {
+            type: "if",
+            condition: { slot: "condition" },
+            yes: [{ type: "statement", text: { slot: "yes" } }],
+            no: [{ type: "statement", text: { slot: "no" } }]
+          }
+        ]
+      },
+      {
+        id: "stg-for",
+        number: "S3",
+        title: "Fünferreihe wiederholen",
+        description: "Plane eine zählergesteuerte Schleife für zehn Ausgaben.",
+        difficulty: "medium",
+        xp: 40,
+        type: "slots",
+        instructions: [
+          "Die Zahlen 1 bis einschließlich 10 werden benötigt.",
+          "In jedem Durchlauf wird das Fünffache der Zählvariable ausgegeben."
+        ],
+        slots: {
+          header: {
+            label: "Schleifenkopf wählen",
+            options: [
+              "Zähle i von 1 bis 10, Schrittweite 1",
+              "Zähle i von 1 bis 5, Schrittweite 10",
+              "Wiederhole solange i == 10"
+            ],
+            answer: "Zähle i von 1 bis 10, Schrittweite 1"
+          },
+          body: {
+            label: "Schleifenkörper wählen",
+            options: ["Ausgabe: i + 5", "Ausgabe: i * 5", "Zuweisung: i = 5"],
+            answer: "Ausgabe: i * 5"
+          }
+        },
+        diagram: [
+          {
+            type: "loop",
+            loopType: "for",
+            header: { slot: "header" },
+            body: [{ type: "statement", text: { slot: "body" } }]
+          }
+        ]
+      },
+      {
+        id: "stg-while",
+        number: "S4",
+        title: "Sparziel erreichen",
+        description: "Vervollständige eine kopfgesteuerte Schleife mit sicherem Ende.",
+        difficulty: "medium",
+        xp: 45,
+        type: "slots",
+        instructions: [
+          "Das Guthaben startet bei 40 Euro.",
+          "Jeden Monat kommen 15 Euro hinzu.",
+          "Die Wiederholung endet, sobald mindestens 130 Euro erreicht sind."
+        ],
+        slots: {
+          condition: {
+            label: "Bedingung wählen",
+            options: [
+              "Wiederhole solange guthaben < 130",
+              "Wiederhole solange guthaben >= 130",
+              "Wiederhole solange guthaben == 40"
+            ],
+            answer: "Wiederhole solange guthaben < 130"
+          },
+          body: {
+            label: "Veränderung wählen",
+            options: [
+              "Zuweisung: guthaben = guthaben - 15",
+              "Zuweisung: guthaben = 15",
+              "Zuweisung: guthaben = guthaben + 15"
+            ],
+            answer: "Zuweisung: guthaben = guthaben + 15"
+          }
+        },
+        diagram: [
+          { type: "statement", text: "Deklaration und Initialisierung: guthaben = 40" },
+          {
+            type: "loop",
+            loopType: "while",
+            header: { slot: "condition" },
+            body: [{ type: "statement", text: { slot: "body" } }]
+          },
+          { type: "statement", text: "Ausgabe: guthaben" }
+        ]
+      },
+      {
+        id: "stg-nested",
+        number: "S5",
+        title: "Ergebnis abgestuft ausgeben",
+        description: "Baue eine geschachtelte Alternative für drei mögliche Ergebnisse.",
+        difficulty: "plus",
+        xp: 50,
+        type: "slots",
+        instructions: [
+          "Unter 50 Punkten lautet die Ausgabe nicht bestanden.",
+          "Ab 50 Punkten ist die Prüfung bestanden.",
+          "Ab 80 Punkten lautet die genauere Ausgabe sehr gut."
+        ],
+        slots: {
+          outerCondition: {
+            label: "Äußere Bedingung wählen",
+            options: ["punkte >= 50", "punkte >= 80", "punkte < 50"],
+            answer: "punkte >= 50"
+          },
+          innerCondition: {
+            label: "Innere Bedingung wählen",
+            options: ["punkte == 50", "punkte >= 80", "punkte < 80"],
+            answer: "punkte >= 80"
+          },
+          excellent: {
+            label: "J-Zweig innen wählen",
+            prefix: "Ausgabe:",
+            options: [
+              "\"nicht bestanden\"",
+              "\"bestanden\"",
+              "\"sehr gut\""
+            ],
+            answer: "\"sehr gut\""
+          },
+          passed: {
+            label: "N-Zweig innen wählen",
+            prefix: "Ausgabe:",
+            options: [
+              "\"bestanden\"",
+              "\"nicht bestanden\"",
+              "\"sehr gut\""
+            ],
+            answer: "\"bestanden\""
+          },
+          failed: {
+            label: "N-Zweig außen wählen",
+            prefix: "Ausgabe:",
+            options: [
+              "\"bestanden\"",
+              "\"nicht bestanden\"",
+              "\"sehr gut\""
+            ],
+            answer: "\"nicht bestanden\""
+          }
+        },
+        diagram: [
+          { type: "statement", text: "Deklaration und Einlesen: punkte als Ganzzahl" },
+          {
+            type: "if",
+            condition: { slot: "outerCondition" },
+            yes: [
+              {
+                type: "if",
+                condition: { slot: "innerCondition" },
+                yes: [{ type: "statement", text: { slot: "excellent" } }],
+                no: [{ type: "statement", text: { slot: "passed" } }]
+              }
+            ],
+            no: [{ type: "statement", text: { slot: "failed" } }]
+          }
+        ]
+      }
+    ]
+  },
+
   achievements: [
     {
       id: "first-step",
@@ -841,6 +1193,20 @@ window.PYLAB_CONTENT = {
       description: "Erreiche mindestens 300 XP.",
       icon: "gem",
       condition: { type: "xp", value: 300 }
+    },
+    {
+      id: "structure-reader",
+      title: "Strukturleser",
+      description: "Löse deine erste Struktogramm-Aufgabe.",
+      icon: "workflow",
+      condition: { type: "structograms", value: 1 }
+    },
+    {
+      id: "structure-planner",
+      title: "Ablaufplaner",
+      description: "Löse alle fünf Struktogramm-Aufgaben.",
+      icon: "network",
+      condition: { type: "allStructograms" }
     },
     {
       id: "workshop-master",

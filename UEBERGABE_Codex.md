@@ -29,6 +29,7 @@ Verbindliche fachliche Referenz:
 - Übersicht mit persönlichem nächsten Schritt und Lernstatistik
 - fünf Lernetappen mit zwölf Lektionen
 - zwölf Aufgaben mit editierbarem Python-Code
+- Struktogramm-Labor mit fünf Grundformen und fünf interaktiven Aufgaben
 - automatische Prüfung von Ausgabe, Variablen und Funktionen
 - Pyodide 0.29.4 in einem Web Worker
 - Abbruch sehr langer Programme nach zehn Sekunden
@@ -57,7 +58,9 @@ Der Schlüssel im Browser lautet `pythonwerkstatt-bg-v1`. Gespeichert werden:
 - `xp`
 - `completedLessons`
 - `completedExercises`
+- `completedStructograms`
 - `drafts`
+- `structogramDrafts`
 - `activityDates`
 - `lastLessonId`
 
@@ -77,11 +80,11 @@ XP werden pro Lektion und Aufgabe nur einmal vergeben.
 
 ## Sinnvolle nächste Schritte
 
-1. Struktogramme als durchgängige Darstellungsform ergänzen.
-2. Den ikonischen Einstieg aus Lernfortschritt 1 didaktisch übertragen.
-3. Geschachtelte Verzweigungen ausdrücklich behandeln und üben.
+1. Weitere Struktogramm-Transferaufgaben ergänzen.
+2. Optional einen freien Struktogramm-Editor oder Export entwickeln.
+3. Den ikonischen Einstieg aus Lernfortschritt 1 bei Bedarf didaktisch übertragen.
 4. Die GUI-Inhalte aus Lernfortschritt 2 als optionales Zusatzmodul prüfen.
-5. Weitere Aufgabenvarianten und kleine Transferaufgaben ergänzen.
+5. Weitere Python-Aufgabenvarianten ergänzen.
 6. Optional Export/Import des lokalen Lernstands als JSON ergänzen.
 7. Vor einem Einsatz als Leistungsnachweis ein separates Prüfungsprojekt mit Authentifizierung und serverseitiger Speicherung planen.
 
